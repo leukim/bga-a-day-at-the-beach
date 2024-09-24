@@ -64,10 +64,14 @@ function (dojo, declare) {
             this.ocean = new ebg.stock();
             this.ocean.create(this, $('ocean'), 81, 117);
             this.ocean.image_items_per_row = 13;
+            this.ocean.setSelectionMode(1);
+            dojo.connect(this.ocean, 'onChangeSelection', this, 'onChangeOceanSelection');
 
             this.hand = new ebg.stock();
             this.hand.create(this, $('hand'), 81, 117);
             this.hand.image_items_per_row = 13;
+            this.hand.setSelectionMode(1);
+            dojo.connect(this.hand, 'onChangeSelection', this, 'onChangeHandSelection');
 
             // Create cards:
             for (var type in this.card_types) {
@@ -187,20 +191,42 @@ function (dojo, declare) {
                  case 'playerTurn':    
                     this.addActionButton('actSurfTurf-btn', _('Surf and Turf'), () => this.onSurfTurf());
                     this.addActionButton('actExchange-btn', _('Exchange'), () => this.onExchange());
+                    dojo.addClass('actExchange-btn', 'disabled');
                     this.addActionButton('actYellowCard-btn', _('Play action card'), () => this.onPlayActionCard());
+                    dojo.addClass('actYellowCard-btn', 'disabled');
 
-                    // const playableCardsIds = args.playableCardsIds; // returned by the argPlayerTurn
-
-                    // Add test action buttons in the action status bar, simulating a card click:
-                    // playableCardsIds.forEach(
-                    //     cardId => this.addActionButton(`actPlayCard${cardId}-btn`, _('Play card with id ${card_id}').replace('${card_id}', cardId), () => this.onCardClick(cardId))
-                    // ); 
-
-                    // this.addActionButton('actPass-btn', _('Pass'), () => this.bgaPerformAction("actPass"), null, null, 'gray'); 
                     break;
                 }
             }
-        },        
+        },
+
+        onChangeOceanSelection: function(control_name, item_id) {
+            console.log("onChangeOceanSelection", control_name, item_id);
+            const ocean_selected = this.ocean.getSelectedItems();
+            const hand_selected = this.ocean.getSelectedItems();
+            if (
+                ocean_selected !== undefined && hand_selected !== undefined &&
+                ocean_selected.length === 1 && hand_selected.length === 1
+            ) {
+                dojo.removeClass('actExchange-btn', 'disabled');
+            } else {
+                dojo.addClass('actExchange-btn', 'disabled');
+            }
+        },
+
+        onChangeHandSelection: function(control_name, item_id) {
+            console.log("onChangeHandSelection", control_name, item_id);
+            const ocean_selected = this.ocean.getSelectedItems();
+            const hand_selected = this.ocean.getSelectedItems();
+            if (
+                ocean_selected !== undefined && hand_selected !== undefined &&
+                ocean_selected.length === 1 && hand_selected.length === 1
+            ) {
+                dojo.removeClass('actExchange-btn', 'disabled');
+            } else {
+                dojo.addClass('actExchange-btn', 'disabled');
+            }
+        },
 
         ///////////////////////////////////////////////////
         //// Utility methods
@@ -240,7 +266,7 @@ function (dojo, declare) {
         {
             console.log( 'onExchange' );
 
-            this.bgaPerformAction("actExchange");        
+            this.bgaPerformAction("actExchange"); // TODO Add parameters
         },
 
         onPlayActionCard: function()
