@@ -1,0 +1,23 @@
+.commonarea {
+    display: flex;
+}
+
+.left {
+    flex: 1;
+    margin-right: 5px;
+}
+
+.right {
+    flex: 10;
+    margin-left: 5px;
+}
+
+.deck {
+    display: inline-block;
+    position: relative;
+    margin-top: 5px;
+    width: 81px;
+    height: 117px;
+    background-image: url('img/tmp_cards.gif');
+    background-position: 0px 1292px;
+}
