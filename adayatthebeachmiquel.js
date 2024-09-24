@@ -102,22 +102,13 @@ function (dojo, declare) {
        
         // Get card unique identifier by row and column (x, y) 0-based
         getCardUniqueId : function(x, y) {
-            return (parseInt(y) * 13) + parseInt(x);
+            return (parseInt(x) * 13) + parseInt(y);
         },
 
         getCardId: function(card) {
             const card_type = this.card_types[card.type];
-            console.log("B", card_type, card.type_arg);
             return this.getCardUniqueId(card_type, card.type_arg)
         },
-
-        // getCardByTypeAndValue : function(type, value) {
-        //     const types = {
-        //         'yellow': 1,
-        //         'blue': 4
-        //     }
-        //     return (types[type] - 1) * 13 + (value - 2);
-        // },
 
         addCardToOcean: function(card) {
             this.ocean.addToStock(this.getCardId(card));

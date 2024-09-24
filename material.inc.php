@@ -26,8 +26,50 @@ $this->card_types = [
     [
         "card_name" => clienttranslate('Two hearts'),
         "card_type" => "blue",
-        "card_id" => 2, // TODO Change to 1 and modify getter (create constants for IDs to have names?)
-        "nbr" => 50
+        "card_id" => 1,
+        "set_type" => "group",
+        "set_size" => 2,
+        "nbr" => 5
+    ],
+    [
+        "card_name" => clienttranslate('Three hearts'),
+        "card_type" => "blue",
+        "card_id" => 2,
+        "set_type" => "group",
+        "set_size" => 3,
+        "nbr" => 7
+    ],
+    [
+        "card_name" => clienttranslate('Four hearts'),
+        "card_type" => "blue",
+        "card_id" => 3,
+        "set_type" => "group",
+        "set_size" => 4,
+        "nbr" => 9
+    ],
+    [
+        "card_name" => clienttranslate('Five hearts'),
+        "card_type" => "blue",
+        "card_id" => 4,
+        "set_type" => "group",
+        "set_size" => 5,
+        "nbr" => 11
+    ],
+    [
+        "card_name" => clienttranslate('Queen of hearts'),
+        "card_type" => "blue",
+        "card_id" => 10,
+        "set_type" => "pair",
+        "pair_id" => 13,
+        "nbr" => 5
+    ],
+    [
+        "card_name" => clienttranslate('King of hearts'),
+        "card_type" => "blue",
+        "card_id" => 11,
+        "set_type" => "pair",
+        "pair_id" => 12,
+        "nbr" => 5
     ],
 ];
 
