@@ -31,7 +31,7 @@
     </div>
 </div>
 <div class="commonarea">
-    <div class="whiteblock left">
+    <div id="deck_panel" class="whiteblock left">
         <h3>Deck</h3>
         <div class="deck" id="deck">
         </div>

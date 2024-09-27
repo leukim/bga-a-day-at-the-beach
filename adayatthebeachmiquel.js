@@ -49,17 +49,8 @@ function (dojo, declare) {
             "gamedatas" argument contains all datas retrieved by your "getAllDatas" PHP method.
         */
         
-        setup: function( gamedatas )
-        {
+        setup: function( gamedatas ) {
             console.log( "Starting game setup" );
-            
-            // Setting up player boards
-            for( var player_id in gamedatas.players )
-            {
-                var player = gamedatas.players[player_id];
-                         
-                // TODO: Setting up players boards if needed
-            }
             
             this.ocean = new ebg.stock();
             this.ocean.create(this, $('ocean'), 81, 117);
@@ -114,12 +105,16 @@ function (dojo, declare) {
             return this.getCardUniqueId(card_type, card.type_arg)
         },
 
+        getCardBackId: function () {
+            return this.getCardUniqueId(0, 4);
+        },
+
         addCardToOcean: function(card) {
-            this.ocean.addToStock(this.getCardId(card));
+            this.ocean.addToStockWithId(this.getCardId(card), card.id);
         },
 
         addCardToHand: function(card) {
-            this.hand.addToStock(this.getCardId(card));
+            this.hand.addToStockWithId(this.getCardId(card), card.id);
         },
 
         ///////////////////////////////////////////////////
@@ -264,9 +259,12 @@ function (dojo, declare) {
 
         onExchange: function()
         {
-            console.log( 'onExchange' );
+            console.log( 'onExchange');
 
-            this.bgaPerformAction("actExchange"); // TODO Add parameters
+            const ocean_card_id = this.ocean.getSelectedItems()[0].id;
+            const hand_card_id = this.hand.getSelectedItems()[0].id;
+
+            this.bgaPerformAction("actExchange", {ocean_card_id, hand_card_id});
         },
 
         onPlayActionCard: function()
@@ -292,47 +290,59 @@ function (dojo, declare) {
         setupNotifications: function()
         {
             console.log( 'notifications subscriptions setup' );
-            
-            // TODO: here, associate your game notifications with local methods
-            
-            // Example 1: standard notification handling
-            // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
-            
-            // Example 2: standard notification handling + tell the user interface to wait
-            //            during 3 seconds after calling the method in order to let the players
-            //            see what is happening in the game.
-            // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
-            // this.notifqueue.setSynchronous( 'cardPlayed', 3000 );
-            // 
 
             dojo.subscribe('cardToOcean', this, "notif_cardToOcean");
+            this.notifqueue.setSynchronous('cardToOcean', 500);
             dojo.subscribe('cardToHand', this, "notif_cardToHand");
+            dojo.subscribe('cardToPlayer', this, "notif_cardToPlayer");
+            dojo.subscribe('exchange', this, 'notif_exchange');
         },  
-        
-        // TODO: from this point and below, you can write your game notifications handling methods
 
-        
-        notif_cardToOcean: function( notif )
-        {
-            console.log( 'notif_cardToOcean' );
-            // console.log( notif );
-            
-            // Note: notif.args contains the arguments specified during you "notifyAllPlayers" / "notifyPlayer" PHP call
+
+        notif_cardToOcean: function(notif) {
+            console.log('notif_cardToOcean');
             
             const card = notif.args.card;
             this.ocean.addToStock(this.getCardId(card), 'deck');
         },
 
-        notif_cardToHand: function( notif )
-        {
-            console.log( 'notif_cardToHand' );
-            //console.log( notif );
-            
-            // Note: notif.args contains the arguments specified during you "notifyAllPlayers" / "notifyPlayer" PHP call
+        notif_cardToHand: function(notif) {
+            console.log('notif_cardToHand');
             
             const card = notif.args.card;
             this.hand.addToStock(this.getCardId(card), 'deck');
         },
+
+        notif_cardToPlayer: function(notif) {
+            console.log('nofid_cardToPlayer');
+
+            const card = this.getCardBackId();
+            const player_id = notif.args.player_id;
+            document.getElementById('deck_panel').insertAdjacentHTML('beforeend', '<div id="flip_card" class="deck"></div>');
+            this.placeOnObject('deck_panel', 'flip_card');
+            this.slideToObjectAndDestroy('flip_card', 'overall_player_board_'+player_id, 1000);
+        },
+
+        notif_exchange: function(notif) {
+            console.log('notif_exchange', notif, this);
+
+            const card_to_player = notif.args.card_to_player;
+            const card_to_ocean = notif.args.card_to_ocean;
+
+            const card_to_player_id = this.getCardId(card_to_player);
+            const card_to_ocean_id = this.getCardId(card_to_ocean);
+
+            if (this.current_player_name === notif.args.playerName) { // TODO use this.playerId and remove playerName
+                this.hand.addToStockWithId(card_to_player_id, card_to_player.id, `ocean_item_${card_to_player.id}`);
+                this.ocean.removeFromStockById(card_to_player.id);
+
+                this.ocean.addToStockWithId(card_to_ocean_id, card_to_ocean.id, `hand_item_${card_to_ocean.id}`);
+                this.hand.removeFromStockById(card_to_ocean.id);
+            } else {
+                this.ocean.removeFromStockById(card_to_player.id, `overall_player_board_${notif.args.playerId}`);
+                this.ocean.addToStockWithId(card_to_ocean_id, card_to_ocean.id, `overall_player_board_${notif.args.playerId}`);
+            }
+        }
 
    });             
 });

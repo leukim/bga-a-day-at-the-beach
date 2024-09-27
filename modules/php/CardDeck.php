@@ -41,4 +41,14 @@ class CardDeck {
     public function pickCardToHand($player_id) {
         return $this->cards->pickCardForLocation('deck', 'hand', $player_id);
     }
+
+    public function cardToPlayer($card_id, $player_id) {
+        $this->cards->moveCard($card_id, 'hand', $player_id);
+        return $this->cards->getCard($card_id);
+    }
+
+    public function cardToOcean( $card_id) {
+        $this->cards->moveCard($card_id, 'ocean');
+        return $this->cards->getCard($card_id);
+    }
 }

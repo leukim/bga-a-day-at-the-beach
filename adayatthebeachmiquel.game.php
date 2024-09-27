@@ -50,25 +50,54 @@ class ADayAtTheBeachMiquel extends Table
     }
 
     public function actSurfTurf(): void {
-        $player_id = (int)$this->getActivePlayerId();
+        // TODO Check is current player?
+        $current_player_id = (int)$this->getActivePlayerId();
 
         $cardToOcean = $this->deck->pickCardToOcean();
-        $cardToHand = $this->deck->pickCardToHand($player_id);
+        $cardToHand = $this->deck->pickCardToHand($current_player_id);
 
         // TODO Log "player plays surf and turf"
 
         $this->notifyAllPlayers('cardToOcean', clienttranslate('${playerName} draws a card into the Ocean'), [
-            "player_id" => $player_id,
+            "player_id" => $current_player_id,
             "playerName" => $this->getActivePlayerName(),
             "card" => $cardToOcean,
         ]);
 
-        $this->notifyPlayer($player_id, 'cardToHand', clienttranslate('${playerName} draws a card'), [
-            "playerName" => $this->getActivePlayerName(),
-            "card" => $cardToHand,
-        ]);
+        $players = $this->loadPlayersBasicInfos();
+        foreach ($players as $player_id => $player) {
+            if ($current_player_id === $player_id) {
+                $this->notifyPlayer($player_id, 'cardToHand', clienttranslate('${playerName} draws a card'), [
+                    "playerName" => $this->getActivePlayerName(),
+                    "card" => $cardToHand,
+                ]);
+            } else {
+                $this->notifyPlayer($player_id, 'cardToPlayer', clienttranslate('${playerName} draws a card'), [
+                    'playerName' => $this->getActivePlayerName(),
+                    'player_id' => $current_player_id
+                ]);
+            }
+        }
+
+        
 
         $this->gamestate->nextState(ACT_SURF_TURF);
+    }
+
+    public function actExchange(int $ocean_card_id, int $hand_card_id): void {
+        $player_id = (int)$this->getActivePlayerId();
+
+        $card_to_player = $this->deck->cardToPlayer($ocean_card_id, $player_id);
+        $card_to_ocean = $this->deck->cardToOcean($hand_card_id);
+
+        $this->notifyAllPlayers('exchange', clienttranslate('${playerName} exchanges cards with the ocean'), [
+            "playerName" => $this->getActivePlayerName(),
+            "playerId" => $player_id,
+            "card_to_ocean" => $card_to_ocean,
+            "card_to_player" => $card_to_player,
+        ]);
+
+        $this->gamestate->nextState(ACT_EXCHANGE);
     }
 
     public function actPass(): void
