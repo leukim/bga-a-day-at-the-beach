@@ -24,20 +24,19 @@
 
 $this->card_types = [
     [
-        "card_name" => clienttranslate('Two hearts'),
+        "card_name" => clienttranslate('Kite'),
         "card_type" => "blue",
         "card_id" => 1,
         "set_type" => "group",
-        "set_size" => 2,
+        "set_size" => 3,
         "nbr" => 5
     ],
     [
-        "card_name" => clienttranslate('Three hearts'),
+        "card_name" => clienttranslate('Lifesaver'),
         "card_type" => "blue",
         "card_id" => 2,
-        "set_type" => "group",
-        "set_size" => 3,
-        "nbr" => 7
+        "set_type" => "joker",
+        "nbr" => 5
     ],
     [
         "card_name" => clienttranslate('Four hearts'),
@@ -45,30 +44,30 @@ $this->card_types = [
         "card_id" => 3,
         "set_type" => "group",
         "set_size" => 4,
-        "nbr" => 9
-    ],
-    [
-        "card_name" => clienttranslate('Five hearts'),
-        "card_type" => "blue",
-        "card_id" => 4,
-        "set_type" => "group",
-        "set_size" => 5,
-        "nbr" => 11
-    ],
-    [
-        "card_name" => clienttranslate('Queen of hearts'),
-        "card_type" => "blue",
-        "card_id" => 10,
-        "set_type" => "pair",
-        "pair_id" => 13,
         "nbr" => 5
     ],
     [
-        "card_name" => clienttranslate('King of hearts'),
+        "card_name" => clienttranslate('Paddle ball'),
+        "card_type" => "blue",
+        "card_id" => 4,
+        "set_type" => "pair",
+        "pair_id" => 999,
+        "nbr" => 5
+    ],
+    [
+        "card_name" => clienttranslate('Frisbee'),
+        "card_type" => "blue",
+        "card_id" => 10,
+        "set_type" => "group",
+        "set_size"=> 3,
+        "nbr" => 5
+    ],
+    [
+        "card_name" => clienttranslate('Right swimmie'),
         "card_type" => "blue",
         "card_id" => 11,
         "set_type" => "pair",
-        "pair_id" => 12,
+        "pair_id" => 999,
         "nbr" => 5
     ],
 ];

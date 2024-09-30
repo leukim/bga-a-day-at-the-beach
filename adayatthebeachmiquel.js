@@ -31,7 +31,7 @@ function (dojo, declare) {
             // this.myGlobalValue = 0;
             this.card_types = {
                 'blue': 0,
-                'yellow': 3
+                'yellow': 1
             };
 
         },
@@ -54,13 +54,13 @@ function (dojo, declare) {
             
             this.ocean = new ebg.stock();
             this.ocean.create(this, $('ocean'), 81, 117);
-            this.ocean.image_items_per_row = 13;
+            this.ocean.image_items_per_row = 19;
             this.ocean.setSelectionMode(1);
             dojo.connect(this.ocean, 'onChangeSelection', this, 'onChangeOceanSelection');
 
             this.hand = new ebg.stock();
             this.hand.create(this, $('hand'), 81, 117);
-            this.hand.image_items_per_row = 13;
+            this.hand.image_items_per_row = 19;
             this.hand.setSelectionMode(1);
             dojo.connect(this.hand, 'onChangeSelection', this, 'onChangeHandSelection');
 
@@ -71,8 +71,8 @@ function (dojo, declare) {
                 for (var value = 1; value < 13; value++) {
                     // Build card type id
                     var card_type_id = this.getCardUniqueId(type_id, value);
-                    this.ocean.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/tmp_cards.gif', card_type_id);
-                    this.hand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/tmp_cards.gif', card_type_id);
+                    this.ocean.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards.png', card_type_id);
+                    this.hand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards.png', card_type_id);
                 }
             }
 
