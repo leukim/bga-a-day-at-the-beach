@@ -25,11 +25,6 @@
     Please REMOVE this comment before publishing your game on BGA
 -->
 
-<div class="whiteblock">
-    <h3>Your hand</h3>
-    <div id="hand">
-    </div>
-</div>
 <div class="commonarea">
     <div id="deck_panel" class="whiteblock left">
         <h3>Deck</h3>
@@ -43,7 +38,11 @@
     </div>
     
 </div>
-
+<div class="whiteblock">
+    <h3>Your hand</h3>
+    <div id="hand">
+    </div>
+</div>
 
 <script type="text/javascript">
 
