@@ -26,9 +26,7 @@ function (dojo, declare) {
         constructor: function(){
             console.log('adayatthebeachmiquel constructor');
               
-            // Here, you can init the global variables of your user interface
-            // Example:
-            // this.myGlobalValue = 0;
+            this.cards_per_row = 19;
             this.card_types = {
                 'blue': 0,
                 'yellow': 1
@@ -54,13 +52,13 @@ function (dojo, declare) {
             
             this.ocean = new ebg.stock();
             this.ocean.create(this, $('ocean'), 81, 117);
-            this.ocean.image_items_per_row = 19;
+            this.ocean.image_items_per_row = this.cards_per_row;
             this.ocean.setSelectionMode(1);
             dojo.connect(this.ocean, 'onChangeSelection', this, 'onChangeOceanSelection');
 
             this.hand = new ebg.stock();
             this.hand.create(this, $('hand'), 81, 117);
-            this.hand.image_items_per_row = 19;
+            this.hand.image_items_per_row = this.cards_per_row;
             this.hand.setSelectionMode(1);
             dojo.connect(this.hand, 'onChangeSelection', this, 'onChangeHandSelection');
 
@@ -68,14 +66,12 @@ function (dojo, declare) {
             for (var type in this.card_types) {
                 const type_id = this.card_types[type];
 
-                for (var value = 1; value < 13; value++) {
-                    // Build card type id
-                    var card_type_id = this.getCardUniqueId(type_id, value);
+                for (var value = 0; value < this.cards_per_row; value++) {
+                    var card_type_id = this.getTypeFromCoords(type_id, value);
                     this.ocean.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards.png', card_type_id);
                     this.hand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards.png', card_type_id);
                 }
             }
-
 
             for (var id in gamedatas['ocean']) {
                 const card = gamedatas['ocean'][id];
@@ -95,26 +91,26 @@ function (dojo, declare) {
             console.log( "Ending game setup" );
         },
        
-        // Get card unique identifier by row and column (x, y) 0-based
-        getCardUniqueId : function(x, y) {
-            return (parseInt(x) * 13) + parseInt(y);
+        // Get card type by row and column (x, y) 0-based
+        getTypeFromCoords : function(x, y) {
+            return (parseInt(x) * 19) + parseInt(y);
         },
 
-        getCardId: function(card) {
+        getTypeFromCard: function(card) {
             const card_type = this.card_types[card.type];
-            return this.getCardUniqueId(card_type, card.type_arg)
+            return this.getTypeFromCoords(card_type, card.type_arg-1)
         },
 
         getCardBackId: function () {
-            return this.getCardUniqueId(0, 4);
+            return this.getTypeFromCoords(0, 4);
         },
 
         addCardToOcean: function(card) {
-            this.ocean.addToStockWithId(this.getCardId(card), card.id);
+            this.ocean.addToStockWithId(this.getTypeFromCard(card), card.id);
         },
 
         addCardToHand: function(card) {
-            this.hand.addToStockWithId(this.getCardId(card), card.id);
+            this.hand.addToStockWithId(this.getTypeFromCard(card), card.id);
         },
 
         ///////////////////////////////////////////////////
@@ -196,30 +192,34 @@ function (dojo, declare) {
         },
 
         onChangeOceanSelection: function(control_name, item_id) {
-            console.log("onChangeOceanSelection", control_name, item_id);
-            const ocean_selected = this.ocean.getSelectedItems();
-            const hand_selected = this.ocean.getSelectedItems();
-            if (
-                ocean_selected !== undefined && hand_selected !== undefined &&
-                ocean_selected.length === 1 && hand_selected.length === 1
-            ) {
-                dojo.removeClass('actExchange-btn', 'disabled');
-            } else {
-                dojo.addClass('actExchange-btn', 'disabled');
+            if( this.isCurrentPlayerActive() ) {
+                console.log("onChangeOceanSelection");
+                const ocean_selected = this.ocean.getSelectedItems();
+                const hand_selected = this.ocean.getSelectedItems();
+                if (
+                    ocean_selected !== undefined && hand_selected !== undefined &&
+                    ocean_selected.length === 1 && hand_selected.length === 1
+                ) {
+                    dojo.removeClass('actExchange-btn', 'disabled');
+                } else {
+                    dojo.addClass('actExchange-btn', 'disabled');
+                }
             }
         },
 
         onChangeHandSelection: function(control_name, item_id) {
-            console.log("onChangeHandSelection", control_name, item_id);
-            const ocean_selected = this.ocean.getSelectedItems();
-            const hand_selected = this.ocean.getSelectedItems();
-            if (
-                ocean_selected !== undefined && hand_selected !== undefined &&
-                ocean_selected.length === 1 && hand_selected.length === 1
-            ) {
-                dojo.removeClass('actExchange-btn', 'disabled');
-            } else {
-                dojo.addClass('actExchange-btn', 'disabled');
+            if( this.isCurrentPlayerActive() ) {
+                console.log("onChangeHandSelection");
+                const ocean_selected = this.ocean.getSelectedItems();
+                const hand_selected = this.ocean.getSelectedItems();
+                if (
+                    ocean_selected !== undefined && hand_selected !== undefined &&
+                    ocean_selected.length === 1 && hand_selected.length === 1
+                ) {
+                    dojo.removeClass('actExchange-btn', 'disabled');
+                } else {
+                    dojo.addClass('actExchange-btn', 'disabled');
+                }
             }
         },
 
@@ -303,14 +303,14 @@ function (dojo, declare) {
             console.log('notif_cardToOcean');
             
             const card = notif.args.card;
-            this.ocean.addToStock(this.getCardId(card), 'deck');
+            this.ocean.addToStock(this.getTypeFromCard(card), 'deck');
         },
 
         notif_cardToHand: function(notif) {
             console.log('notif_cardToHand');
             
             const card = notif.args.card;
-            this.hand.addToStock(this.getCardId(card), 'deck');
+            this.hand.addToStock(this.getTypeFromCard(card), 'deck');
         },
 
         notif_cardToPlayer: function(notif) {
@@ -329,8 +329,8 @@ function (dojo, declare) {
             const card_to_player = notif.args.card_to_player;
             const card_to_ocean = notif.args.card_to_ocean;
 
-            const card_to_player_id = this.getCardId(card_to_player);
-            const card_to_ocean_id = this.getCardId(card_to_ocean);
+            const card_to_player_id = this.getTypeFromCard(card_to_player);
+            const card_to_ocean_id = this.getTypeFromCard(card_to_ocean);
 
             if (this.current_player_name === notif.args.playerName) { // TODO use this.playerId and remove playerName
                 this.hand.addToStockWithId(card_to_player_id, card_to_player.id, `ocean_item_${card_to_player.id}`);

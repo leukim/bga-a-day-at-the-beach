@@ -18,8 +18,9 @@
     margin-top: 5px;
     width: 81px;
     height: 117px;
-    background-image: url('img/cards.gif');
-    background-position: 0px 1292px;
+    background-image: url('img/cards.png');
+    background-position: 0% 100%;
+    background-size: 1900% 300%;
 }
 
 .stockitem {
