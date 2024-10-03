@@ -243,8 +243,6 @@ function (dojo, declare) {
         {
             console.log( 'onExchange');
 
-            // TODO BUG?
-
             const ocean_card_id = this.ocean.getSelectedItems()[0].id;
             const hand_card_id = this.hand.getSelectedItems()[0].id;
 
@@ -298,14 +296,14 @@ function (dojo, declare) {
             console.log('notif_cardToOcean');
             
             const card = notif.args.card;
-            this.ocean.addToStock(this.getTypeFromCard(card), 'deck');
+            this.ocean.addToStockWithId(this.getTypeFromCard(card), card.id, 'deck');
         },
 
         notif_cardToHand: function(notif) {
             console.log('notif_cardToHand');
             
             const card = notif.args.card;
-            this.hand.addToStock(this.getTypeFromCard(card), 'deck');
+            this.hand.addToStockWithId(this.getTypeFromCard(card), card.id, 'deck');
         },
 
         notif_cardToPlayer: function(notif) {
@@ -321,21 +319,23 @@ function (dojo, declare) {
         notif_exchange: function(notif) {
             console.log('notif_exchange', notif);
 
+            const player_id = notif.args.player_id;
+
             const card_to_player = notif.args.card_to_player;
             const card_to_ocean = notif.args.card_to_ocean;
 
-            const card_to_player_id = this.getTypeFromCard(card_to_player);
-            const card_to_ocean_id = this.getTypeFromCard(card_to_ocean);
+            const card_to_player_type = this.getTypeFromCard(card_to_player);
+            const card_to_ocean_type = this.getTypeFromCard(card_to_ocean);
 
             if (this.player_id === notif.args.player_id) {
-                this.hand.addToStockWithId(card_to_player_id, card_to_player.id, `ocean_item_${card_to_player.id}`);
+                this.hand.addToStockWithId(card_to_player_type, card_to_player.id, `ocean_item_${card_to_player.id}`);
                 this.ocean.removeFromStockById(card_to_player.id);
 
-                this.ocean.addToStockWithId(card_to_ocean_id, card_to_ocean.id, `hand_item_${card_to_ocean.id}`);
+                this.ocean.addToStockWithId(card_to_ocean_type, card_to_ocean.id, `hand_item_${card_to_ocean.id}`);
                 this.hand.removeFromStockById(card_to_ocean.id);
             } else {
-                this.ocean.removeFromStockById(card_to_player.id, `overall_player_board_${notif.args.player_id}`);
-                this.ocean.addToStockWithId(card_to_ocean_id, card_to_ocean.id, `overall_player_board_${notif.args.player_id}`);
+                this.ocean.removeFromStockById(card_to_player.id, `overall_player_board_${player_id}`);
+                this.ocean.addToStockWithId(card_to_ocean_type, card_to_ocean.id, `overall_player_board_${notif.args.player_id}`);
             }
         }
 

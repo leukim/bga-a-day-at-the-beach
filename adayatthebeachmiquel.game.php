@@ -120,12 +120,14 @@ class ADayAtTheBeachMiquel extends Table
      * @return string[]
      * @see ./states.inc.php
      */
-    // public function argPlayerTurn(): array
-    // {
-    //     // Get some values from the current game situation from the database.
+    public function argPutDownSet(): array
+    {
+        //$player_id = (int)$this->getActivePlayerId();
 
-    //     return [];
-    // }
+        //$sets = $this->set_detector->get_available_sets($player_id);
+
+        return [];
+    }
 
     /**
      * Compute and return the current game progression.
@@ -166,7 +168,7 @@ class ADayAtTheBeachMiquel extends Table
     public function stCheckCanPutDownSet(): void {
         $player_id = (int)$this->getActivePlayerId();
 
-        if ($this->set_detector->has_set($player_id)) {
+        if (count($this->set_detector->get_available_sets($player_id)) > 0) {
             $this->gamestate->nextState(ACT_ALLOW_PUT_DOWN_SET);
         } else {
             $this->gamestate->nextState(ACT_CANNOT_PUT_DOWN_SET);
