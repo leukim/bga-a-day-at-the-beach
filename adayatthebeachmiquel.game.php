@@ -120,13 +120,13 @@ class ADayAtTheBeachMiquel extends Table
      * @return string[]
      * @see ./states.inc.php
      */
-    public function argPutDownSet(): array
+    public function argPutDownSet()
     {
-        //$player_id = (int)$this->getActivePlayerId();
+        $player_id = self::getActivePlayerId();
 
-        //$sets = $this->set_detector->get_available_sets($player_id);
+        $sets = $this->set_detector->get_available_sets($player_id);
 
-        return [];
+        return $sets;
     }
 
     /**

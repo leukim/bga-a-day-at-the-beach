@@ -165,8 +165,15 @@ function (dojo, declare) {
                         dojo.addClass('actYellowCard-btn', 'disabled');
                         break;
                     case 'putDownSet':
-                        this.addActionButton('actPutDownSet-btn', _('Put down set'), () => this.onPutDownSet());
-                        dojo.addClass('actPutDownSet-btn', 'disabled');
+                        for (var id in args) {
+                            const set = args[id];
+                            this.addActionButton(
+                                'actPutDownSet'+set.name+'-btn',
+                                dojo.string.substitute(_("Put down ${setName}"), {setName: set.name}),
+                                () => this.onPutDownSet(set.card_type_arg)
+                            );
+                        }
+
                         this.addActionButton('actPass-btn', _('Pass'), () => this.onPass());
                         break;
                 }
@@ -256,8 +263,8 @@ function (dojo, declare) {
             this.bgaPerformAction("actPlayActionCard");        
         },
 
-        onPutDownSet: function() {
-            console.log('onPutDownSet');
+        onPutDownSet: function(set_id) {
+            console.log('onPutDownSet', set_id);
 
             // TODO Implement
         },

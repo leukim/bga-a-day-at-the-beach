@@ -7,7 +7,7 @@ class SetDetector {
 
     private $cards;
     private $card_types;
-    private $that;
+    private $that; // TODO Remove
 
     public function __construct($deck, $card_types, $that) {
         $this->cards = $deck;
@@ -15,55 +15,40 @@ class SetDetector {
         $this->that = $that;
     }
 
-    public function has_set($player_id): bool {
-        $hand = $this->cards->getHand($player_id);
-
-        foreach ($hand as $card_id => $card) {
-            $card_type = $this->get_card_type($card);
-            if ($card_type['card_type'] == BLUE_CARD) {
-                switch ($card_type['set_type']) {
-                    case 'pair':
-                        $pair_in_hand = $this->find_pair_in_hand($card_type, $hand);
-                        if ($pair_in_hand) return true;
-                        break;
-                    case 'group':
-                        $group_in_hand = $this->find_group_in_hand($card_type, $hand);
-                        if ($group_in_hand) return true;
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
-        return false;
-    }
-
     public function get_available_sets($player_id): array {
         $hand = $this->cards->getHand($player_id);
 
         $sets = [];
 
-        foreach ($hand as $card) {
+        foreach ($hand as $key => $card) {
             $card_type = $this->get_card_type($card);
             if ($card_type['card_type'] == BLUE_CARD) {
                 switch ($card_type['set_type']) {
                     case 'pair':
-                        $pair_in_hand = $this->find_pair_in_hand($card_type, $hand);
-                        if ($pair_in_hand) {
+                        $pair_in_hand_card = $this->find_pair_in_hand($card_type, $hand);
+                        if ($pair_in_hand_card != null) {
+                            $other_card_type = $this->get_card_type($pair_in_hand_card);
+                            $sets[] = [
+                                'name' => $card_type['card_name']." and ".$other_card_type['card_name'],
+                                'card_type_arg' => $card_type['card_type_arg'],
+                            ];
+                            if ($hand[$key]['type_arg'] != 1) { // Is not a Joker
+                                unset($hand[$key]);
+                            }
+                        }
+                        break;
+                    case 'group':
+                        $keys = $this->find_group_in_hand($card_type, $hand);
+                        if (count($keys) >= $card_type['set_size']) {
                             $sets[] = [
                                 'name' => $card_type['card_name'],
                                 'card_type_arg' => $card_type['card_type_arg'],
                             ];
                         }
-                        break;
-                    case 'group':
-                        $group_in_hand = $this->find_group_in_hand($card_type, $hand);
-                        if ($group_in_hand) {
-                            $sets[] = [
-                                'name' => $card_type['card_name'],
-                                'card_type_arg' => $card_type['card_type_arg'],
-                            ];
+                        foreach ($keys as $key) {
+                            if ($hand[$key]['type_arg'] != 1) { // Is not a Joker
+                                unset($hand[$key]);
+                            }
                         }
                         break;
                     default:
@@ -83,26 +68,26 @@ class SetDetector {
         return $this->card_types[$type];
     }
 
-    private function find_pair_in_hand($card_type, $hand): bool {
-        return $this->is_card_id_in_hand($card_type['pair_id'], $hand);
+    private function find_pair_in_hand($card_type, $hand): mixed {
+        return $this->get_card_id_in_hand($card_type['pair_id'], $hand);
     }
 
-    private function is_card_id_in_hand($card_type_id, $hand): bool {
+    private function get_card_id_in_hand($card_type_id, $hand): mixed {
         foreach ($hand as $card) {
             if ($card['type_arg'] == $card_type_id or $card['type_arg'] == $this->JOKER_TYPE_ARG) {
-                return true;
+                return $card;
             }
         }
-        return false;
+        return null;
     }
 
-    private function find_group_in_hand($card_type, $hand): bool {
-        $count = 0;
-        foreach ($hand as $card) {
+    private function find_group_in_hand($card_type, $hand): array {
+        $group = [];
+        foreach ($hand as $key => $card) {
             if ($card['type_arg'] == $card_type['card_type_arg'] or $card['type_arg'] == $this->JOKER_TYPE_ARG) {
-                $count += 1;
+                $group[] = $key;
             }
         }
-        return $count >= $card_type['set_size'];
+        return $group;
     }
 }

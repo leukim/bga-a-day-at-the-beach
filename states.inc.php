@@ -90,7 +90,7 @@ $machinestates = [
         "description" => clienttranslate('${actplayer} can put down a set'),
         "descriptionmyturn" => clienttranslate('${you} can put down a set'),
         "type" => "activeplayer",
-        "args" => "argsPutDownSet",
+        "args" => "argPutDownSet",
         "possibleactions" => [
             "actPutDownSet",
             "actPass"
