@@ -68,7 +68,6 @@ $machinestates = [
         "description" => clienttranslate('${actplayer} must choose an action'),
         "descriptionmyturn" => clienttranslate('${you} must choose an action'),
         "type" => "activeplayer",
-        "args" => "argPlayerTurn",
         "possibleactions" => [
             "actSurfTurf", 
             "actExchange",
@@ -89,9 +88,8 @@ $machinestates = [
     ST_PUT_DOWN_SET => [
         "name" => "putDownSet",
         "description" => clienttranslate('${actplayer} can put down a set'),
-        "descriptionMyTurn" => clienttranslate('${you} can put down a set'),
+        "descriptionmyturn" => clienttranslate('${you} can put down a set'),
         "type" => "activeplayer",
-        "args" => "argPutDownSet",
         "possibleactions" => [
             "actPutDownSet",
             "actPass"

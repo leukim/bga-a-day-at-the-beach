@@ -27,3 +27,9 @@ const ACT_PASS = "pass";
 
 const ACT_NEXT_PLAYER = "nextPlayer";
 const ACT_END_GAME = "endGame";
+
+/*
+ * Cards
+ */
+const BLUE_CARD = 0;
+const YELLOW_CARD = 1;

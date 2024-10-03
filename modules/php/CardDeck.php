@@ -10,8 +10,8 @@ class CardDeck {
 
     public function init($card_types, $players): void {
         $cards = [];
-        foreach($card_types as $card_type) {
-            $cards[] = [ 'type' => $card_type['card_type'], 'type_arg' => $card_type['card_id'], 'nbr' => $card_type['nbr']];
+        foreach($card_types as $id =>$card_type) {
+            $cards[] = [ 'type' => $card_type['card_type'], 'type_arg' => $card_type['card_type_arg'], 'nbr' => $card_type['nbr']];
         }
 
         $this->cards->createCards( $cards, 'deck' );

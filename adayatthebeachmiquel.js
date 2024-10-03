@@ -27,10 +27,7 @@ function (dojo, declare) {
             console.log('adayatthebeachmiquel constructor');
               
             this.cards_per_row = 19;
-            this.card_types = {
-                'blue': 0,
-                'yellow': 1
-            };
+            this.card_types = 2;
 
         },
         
@@ -53,21 +50,20 @@ function (dojo, declare) {
             this.ocean = new ebg.stock();
             this.ocean.create(this, $('ocean'), 81, 117);
             this.ocean.image_items_per_row = this.cards_per_row;
-            this.ocean.setSelectionMode(1);
+            this.ocean.setSelectionMode(0);
             dojo.connect(this.ocean, 'onChangeSelection', this, 'onChangeOceanSelection');
 
             this.hand = new ebg.stock();
             this.hand.create(this, $('hand'), 81, 117);
             this.hand.image_items_per_row = this.cards_per_row;
-            this.hand.setSelectionMode(1);
+            this.hand.setSelectionMode(0);
             dojo.connect(this.hand, 'onChangeSelection', this, 'onChangeHandSelection');
 
             // Create cards:
-            for (var type in this.card_types) {
-                const type_id = this.card_types[type];
+            for (var type = 0; type < this.card_types; type++) {
 
                 for (var value = 0; value < this.cards_per_row; value++) {
-                    var card_type_id = this.getTypeFromCoords(type_id, value);
+                    var card_type_id = this.getTypeFromCoords(type, value);
                     this.ocean.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards.png', card_type_id);
                     this.hand.addItemType(card_type_id, card_type_id, g_gamethemeurl + 'img/cards.png', card_type_id);
                 }
@@ -93,12 +89,11 @@ function (dojo, declare) {
        
         // Get card type by row and column (x, y) 0-based
         getTypeFromCoords : function(x, y) {
-            return (parseInt(x) * 19) + parseInt(y);
+            return (parseInt(x) * this.cards_per_row) + parseInt(y);
         },
 
         getTypeFromCard: function(card) {
-            const card_type = this.card_types[card.type];
-            return this.getTypeFromCoords(card_type, card.type_arg-1)
+            return this.getTypeFromCoords(card.type, card.type_arg)
         },
 
         getCardBackId: function () {
@@ -121,24 +116,17 @@ function (dojo, declare) {
         //
         onEnteringState: function( stateName, args )
         {
-            console.log( 'Entering state: '+stateName, args );
+            console.log( 'Entering state: ', stateName, args );
             
             switch( stateName )
             {
-            
-            /* Example:
-            
-            case 'myGameState':
-            
-                // Show some HTML block at this game state
-                dojo.style( 'my_html_block_id', 'display', 'block' );
-                
-                break;
-           */
-           
-           
-            case 'dummmy':
-                break;
+                case 'playerTurn':
+                    // TODO Review, does not work
+                    this.ocean.setSelectionMode(1);
+                    this.ocean.unselectAll();
+                    this.hand.setSelectionMode(1);
+                    this.hand.unselectAll();
+                    break;
             }
         },
 
@@ -147,24 +135,14 @@ function (dojo, declare) {
         //
         onLeavingState: function( stateName )
         {
-            console.log( 'Leaving state: '+stateName );
+            console.log( 'Leaving state: ', stateName );
             
             switch( stateName )
             {
-            
-            /* Example:
-            
-            case 'myGameState':
-            
-                // Hide the HTML block we are displaying only during this game state
-                dojo.style( 'my_html_block_id', 'display', 'none' );
-                
-                break;
-           */
-           
-           
-            case 'dummmy':
-                break;
+                case 'playerTurn':
+                    this.ocean.setSelectionMode(0);
+                    this.hand.setSelectionMode(0);
+                    break;
             }               
         }, 
 
@@ -173,20 +151,24 @@ function (dojo, declare) {
         //        
         onUpdateActionButtons: function( stateName, args )
         {
-            console.log( 'onUpdateActionButtons: '+stateName, args );
+            console.log( 'onUpdateActionButtons: ', stateName );
                       
             if( this.isCurrentPlayerActive() )
             {            
                 switch( stateName )
                 {
-                 case 'playerTurn':    
-                    this.addActionButton('actSurfTurf-btn', _('Surf and Turf'), () => this.onSurfTurf());
-                    this.addActionButton('actExchange-btn', _('Exchange'), () => this.onExchange());
-                    dojo.addClass('actExchange-btn', 'disabled');
-                    this.addActionButton('actYellowCard-btn', _('Play action card'), () => this.onPlayActionCard());
-                    dojo.addClass('actYellowCard-btn', 'disabled');
-
-                    break;
+                    case 'playerTurn':    
+                        this.addActionButton('actSurfTurf-btn', _('Surf and Turf'), () => this.onSurfTurf());
+                        this.addActionButton('actExchange-btn', _('Exchange'), () => this.onExchange());
+                        dojo.addClass('actExchange-btn', 'disabled');
+                        this.addActionButton('actYellowCard-btn', _('Play action card'), () => this.onPlayActionCard());
+                        dojo.addClass('actYellowCard-btn', 'disabled');
+                        break;
+                    case 'putDownSet':
+                        this.addActionButton('actPutDownSet-btn', _('Put down set'), () => this.onPutDownSet());
+                        dojo.addClass('actPutDownSet-btn', 'disabled');
+                        this.addActionButton('actPass-btn', _('Pass'), () => this.onPass());
+                        break;
                 }
             }
         },
@@ -195,7 +177,7 @@ function (dojo, declare) {
             if( this.isCurrentPlayerActive() ) {
                 console.log("onChangeOceanSelection");
                 const ocean_selected = this.ocean.getSelectedItems();
-                const hand_selected = this.ocean.getSelectedItems();
+                const hand_selected = this.hand.getSelectedItems();
                 if (
                     ocean_selected !== undefined && hand_selected !== undefined &&
                     ocean_selected.length === 1 && hand_selected.length === 1
@@ -211,7 +193,7 @@ function (dojo, declare) {
             if( this.isCurrentPlayerActive() ) {
                 console.log("onChangeHandSelection");
                 const ocean_selected = this.ocean.getSelectedItems();
-                const hand_selected = this.ocean.getSelectedItems();
+                const hand_selected = this.hand.getSelectedItems();
                 if (
                     ocean_selected !== undefined && hand_selected !== undefined &&
                     ocean_selected.length === 1 && hand_selected.length === 1
@@ -254,12 +236,14 @@ function (dojo, declare) {
         {
             console.log( 'onSurfTurf' );
 
-            this.bgaPerformAction("actSurfTurf");        
+            this.bgaPerformAction("actSurfTurf");      
         },
 
         onExchange: function()
         {
             console.log( 'onExchange');
+
+            // TODO BUG?
 
             const ocean_card_id = this.ocean.getSelectedItems()[0].id;
             const hand_card_id = this.hand.getSelectedItems()[0].id;
@@ -274,6 +258,17 @@ function (dojo, declare) {
             this.bgaPerformAction("actPlayActionCard");        
         },
 
+        onPutDownSet: function() {
+            console.log('onPutDownSet');
+
+            // TODO Implement
+        },
+
+        onPass: function() {
+            console.log('onPass');
+
+            this.bgaPerformAction('actPass');
+        },
         
         ///////////////////////////////////////////////////
         //// Reaction to cometD notifications
@@ -324,7 +319,7 @@ function (dojo, declare) {
         },
 
         notif_exchange: function(notif) {
-            console.log('notif_exchange', notif, this);
+            console.log('notif_exchange', notif);
 
             const card_to_player = notif.args.card_to_player;
             const card_to_ocean = notif.args.card_to_ocean;
@@ -332,15 +327,15 @@ function (dojo, declare) {
             const card_to_player_id = this.getTypeFromCard(card_to_player);
             const card_to_ocean_id = this.getTypeFromCard(card_to_ocean);
 
-            if (this.current_player_name === notif.args.playerName) { // TODO use this.playerId and remove playerName
+            if (this.player_id === notif.args.player_id) {
                 this.hand.addToStockWithId(card_to_player_id, card_to_player.id, `ocean_item_${card_to_player.id}`);
                 this.ocean.removeFromStockById(card_to_player.id);
 
                 this.ocean.addToStockWithId(card_to_ocean_id, card_to_ocean.id, `hand_item_${card_to_ocean.id}`);
                 this.hand.removeFromStockById(card_to_ocean.id);
             } else {
-                this.ocean.removeFromStockById(card_to_player.id, `overall_player_board_${notif.args.playerId}`);
-                this.ocean.addToStockWithId(card_to_ocean_id, card_to_ocean.id, `overall_player_board_${notif.args.playerId}`);
+                this.ocean.removeFromStockById(card_to_player.id, `overall_player_board_${notif.args.player_id}`);
+                this.ocean.addToStockWithId(card_to_ocean_id, card_to_ocean.id, `overall_player_board_${notif.args.player_id}`);
             }
         }
 

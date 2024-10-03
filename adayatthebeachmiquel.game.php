@@ -20,10 +20,12 @@ require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
 require_once "modules/php/constants.inc.php";
 require_once "modules/php/CardDeck.php";
+require_once "modules/php/SetDetector.php";
 
 class ADayAtTheBeachMiquel extends Table
 {
     private $deck;
+    private $set_detector;
 
     /**
      * Your global variables labels:
@@ -40,6 +42,7 @@ class ADayAtTheBeachMiquel extends Table
         parent::__construct();
 
         $this->deck = new CardDeck($this->getNew( "module.common.deck" ));
+        $this->set_detector = new SetDetector($this->deck, $this->card_types, $this);
 
         $this->initGameStateLabels([
             "my_first_global_variable" => 10,
@@ -49,7 +52,7 @@ class ADayAtTheBeachMiquel extends Table
         ]);
     }
 
-    public function actSurfTurf(): void {
+    public function actSurfTurf() {
         // TODO Check is current player?
         $current_player_id = (int)$this->getActivePlayerId();
 
@@ -58,15 +61,16 @@ class ADayAtTheBeachMiquel extends Table
 
         // TODO Log "player plays surf and turf"
 
-        $this->notifyAllPlayers('cardToOcean', clienttranslate('${playerName} draws a card into the Ocean'), [
-            "player_id" => $current_player_id,
+        $this->notifyAllPlayers('cardToOcean', clienttranslate('${playerName} draws a card into the ocean'), [
             "playerName" => $this->getActivePlayerName(),
+            "player_id" => $current_player_id,
             "card" => $cardToOcean,
         ]);
 
         $players = $this->loadPlayersBasicInfos();
         foreach ($players as $player_id => $player) {
             if ($current_player_id === $player_id) {
+                // TODO Add card name to log
                 $this->notifyPlayer($player_id, 'cardToHand', clienttranslate('${playerName} draws a card'), [
                     "playerName" => $this->getActivePlayerName(),
                     "card" => $cardToHand,
@@ -92,26 +96,19 @@ class ADayAtTheBeachMiquel extends Table
 
         $this->notifyAllPlayers('exchange', clienttranslate('${playerName} exchanges cards with the ocean'), [
             "playerName" => $this->getActivePlayerName(),
-            "playerId" => $player_id,
+            "player_id" => $player_id,
             "card_to_ocean" => $card_to_ocean,
             "card_to_player" => $card_to_player,
         ]);
 
         $this->gamestate->nextState(ACT_EXCHANGE);
     }
-
+    
+    public function actPutDownSet($card_ids) {
+        $this->gamestate->nextState(ACT_PUT_DOWN_SET);
+    }
     public function actPass(): void
     {
-        // Retrieve the active player ID.
-        $player_id = (int)$this->getActivePlayerId();
-
-        // Notify all players about the choice to pass.
-        $this->notifyAllPlayers("cardPlayed", clienttranslate('${player_name} passes'), [
-            "player_id" => $player_id,
-            "player_name" => $this->getActivePlayerName(),
-        ]);
-
-        // at the end of the action, move to the next state
         $this->gamestate->nextState(ACT_PASS);
     }
 
@@ -123,14 +120,12 @@ class ADayAtTheBeachMiquel extends Table
      * @return string[]
      * @see ./states.inc.php
      */
-    public function argPlayerTurn(): array
-    {
-        // Get some values from the current game situation from the database.
+    // public function argPlayerTurn(): array
+    // {
+    //     // Get some values from the current game situation from the database.
 
-        return [
-            "playableCardsIds" => [1, 2],
-        ];
-    }
+    //     return [];
+    // }
 
     /**
      * Compute and return the current game progression.
@@ -169,9 +164,13 @@ class ADayAtTheBeachMiquel extends Table
     }
 
     public function stCheckCanPutDownSet(): void {
-        // TODO Implement putting down sets
+        $player_id = (int)$this->getActivePlayerId();
 
-        $this->gamestate->nextState(ACT_CANNOT_PUT_DOWN_SET);
+        if ($this->set_detector->has_set($player_id)) {
+            $this->gamestate->nextState(ACT_ALLOW_PUT_DOWN_SET);
+        } else {
+            $this->gamestate->nextState(ACT_CANNOT_PUT_DOWN_SET);
+        }
     }
 
     /**
