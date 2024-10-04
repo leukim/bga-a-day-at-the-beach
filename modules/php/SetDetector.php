@@ -30,7 +30,7 @@ class SetDetector {
                             $other_card_type = $this->get_card_type($pair_in_hand_card);
                             $sets[] = [
                                 'name' => $card_type['card_name']." and ".$other_card_type['card_name'],
-                                'card_type_arg' => $card_type['card_type_arg'],
+                                'card_ids' => [$card['id'], $pair_in_hand_card['id']],
                             ];
                             if ($hand[$key]['type_arg'] != 1) { // Is not a Joker
                                 unset($hand[$key]);
@@ -38,18 +38,22 @@ class SetDetector {
                         }
                         break;
                     case 'group':
+                        // TODO BUG YELLOW CARDS
                         $keys = $this->find_group_in_hand($card_type, $hand);
-                        if (count($keys) >= $card_type['set_size']) {
-                            $sets[] = [
-                                'name' => $card_type['card_name'],
-                                'card_type_arg' => $card_type['card_type_arg'],
-                            ];
-                        }
+                        $card_ids = [];
                         foreach ($keys as $key) {
+                            $card_ids[] = $hand[$key]['id'];
                             if ($hand[$key]['type_arg'] != 1) { // Is not a Joker
                                 unset($hand[$key]);
                             }
                         }
+                        if (count($keys) >= $card_type['set_size']) {
+                            $sets[] = [
+                                'name' => $card_type['card_name'],
+                                'card_ids' => $card_ids,
+                            ];
+                        }
+                        
                         break;
                     default:
                         break;
@@ -74,7 +78,11 @@ class SetDetector {
 
     private function get_card_id_in_hand($card_type_id, $hand): mixed {
         foreach ($hand as $card) {
-            if ($card['type_arg'] == $card_type_id or $card['type_arg'] == $this->JOKER_TYPE_ARG) {
+            $card_type = $this->get_card_type($card);
+            if (
+                $card_type['card_type'] == BLUE_CARD and 
+                ( $card['type_arg'] == $card_type_id or $card['type_arg'] == $this->JOKER_TYPE_ARG)
+            ) {
                 return $card;
             }
         }
@@ -84,7 +92,10 @@ class SetDetector {
     private function find_group_in_hand($card_type, $hand): array {
         $group = [];
         foreach ($hand as $key => $card) {
-            if ($card['type_arg'] == $card_type['card_type_arg'] or $card['type_arg'] == $this->JOKER_TYPE_ARG) {
+            if (
+                $card_type['card_type'] == BLUE_CARD and 
+                ($card['type_arg'] == $card_type['card_type_arg'] or $card['type_arg'] == $this->JOKER_TYPE_ARG)
+            ) {
                 $group[] = $key;
             }
         }

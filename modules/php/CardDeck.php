@@ -18,6 +18,7 @@ class CardDeck {
 
         $this->cards->moveAllCardsInLocation( null, "deck" );
         $this->cards->shuffle("deck");
+        $this->cards->autoreshuffle = true; // TODO Add callback to notify users
 
         foreach( $players as $player_id => $player )
         {
@@ -47,8 +48,26 @@ class CardDeck {
         return $this->cards->getCard($card_id);
     }
 
-    public function cardToOcean( $card_id) {
+    public function cardToOcean($card_id) {
         $this->cards->moveCard($card_id, 'ocean');
         return $this->cards->getCard($card_id);
+    }
+
+    public function putDownSet($player_id, $card_ids) {
+        $hand = $this->getHand($player_id);
+
+        foreach ($hand as $card) {
+            if (in_array($card['id'], $card_ids)) {
+                $this->cards->playCard($card['id']);
+            }
+        }
+    }
+
+    public function deckSize() {
+        return $this->cards->countCardsInLocation('deck');
+    }
+
+    public function discardSize() {
+        return $this->cards->countCardsInLocation('discard');
     }
 }

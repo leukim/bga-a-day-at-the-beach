@@ -29,6 +29,13 @@
     <div id="deck_panel" class="whiteblock left">
         <h3>Deck</h3>
         <div class="deck" id="deck">
+            <span id="deck_size" class="card_count"></span>
+        </div>
+    </div>
+    <div id="discard_panel" class="whiteblock left">
+        <h3>Discard</h3>
+        <div class="discard" id="discard" data-state="empty">
+            <span id="discard_size" class="card_count"></span>
         </div>
     </div>
     <div class="whiteblock right">

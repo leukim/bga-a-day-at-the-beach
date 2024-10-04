@@ -28,7 +28,6 @@ function (dojo, declare) {
               
             this.cards_per_row = 19;
             this.card_types = 2;
-
         },
         
         /*
@@ -79,6 +78,19 @@ function (dojo, declare) {
                 const card = gamedatas['hand'][id];
 
                 this.addCardToHand(card);
+            }
+
+            this.deck_counter = new ebg.counter();
+            this.deck_counter.create('deck_size');
+
+            this.deck_counter.setValue(gamedatas['sizes']['deck']);
+
+            this.discard_counter = new ebg.counter();
+            this.discard_counter.create('discard_size');
+
+            if (gamedatas['sizes']['discard'] > 0) {
+                this.discard_counter.setValue(gamedatas['sizes']['discard']);
+                dojo.attr('discard', 'data-state', 'card');
             }
  
             // Setup game notifications to handle (see "setupNotifications" method below)
@@ -170,7 +182,7 @@ function (dojo, declare) {
                             this.addActionButton(
                                 'actPutDownSet'+set.name+'-btn',
                                 dojo.string.substitute(_("Put down ${setName}"), {setName: set.name}),
-                                () => this.onPutDownSet(set.card_type_arg)
+                                () => this.onPutDownSet(set.card_ids)
                             );
                         }
 
@@ -263,10 +275,10 @@ function (dojo, declare) {
             this.bgaPerformAction("actPlayActionCard");        
         },
 
-        onPutDownSet: function(set_id) {
-            console.log('onPutDownSet', set_id);
+        onPutDownSet: function(card_ids) {
+            console.log('onPutDownSet', card_ids);
 
-            // TODO Implement
+            this.bgaPerformAction("actPutDownSet", {card_ids: card_ids.join(',')});
         },
 
         onPass: function() {
@@ -296,6 +308,7 @@ function (dojo, declare) {
             dojo.subscribe('cardToHand', this, "notif_cardToHand");
             dojo.subscribe('cardToPlayer', this, "notif_cardToPlayer");
             dojo.subscribe('exchange', this, 'notif_exchange');
+            dojo.subscribe('discard', this, 'notif_discard');
         },  
 
 
@@ -304,6 +317,7 @@ function (dojo, declare) {
             
             const card = notif.args.card;
             this.ocean.addToStockWithId(this.getTypeFromCard(card), card.id, 'deck');
+            this.deck_counter.incValue(-1);
         },
 
         notif_cardToHand: function(notif) {
@@ -311,6 +325,7 @@ function (dojo, declare) {
             
             const card = notif.args.card;
             this.hand.addToStockWithId(this.getTypeFromCard(card), card.id, 'deck');
+            this.deck_counter.incValue(-1);
         },
 
         notif_cardToPlayer: function(notif) {
@@ -321,6 +336,7 @@ function (dojo, declare) {
             document.getElementById('deck_panel').insertAdjacentHTML('beforeend', '<div id="flip_card" class="deck"></div>');
             this.placeOnObject('deck_panel', 'flip_card');
             this.slideToObjectAndDestroy('flip_card', 'overall_player_board_'+player_id, 1000);
+            this.deck_counter.incValue(-1);
         },
 
         notif_exchange: function(notif) {
@@ -344,7 +360,37 @@ function (dojo, declare) {
                 this.ocean.removeFromStockById(card_to_player.id, `overall_player_board_${player_id}`);
                 this.ocean.addToStockWithId(card_to_ocean_type, card_to_ocean.id, `overall_player_board_${notif.args.player_id}`);
             }
-        }
+        },
+
+        notif_discard: function(notif) {
+            console.log('notif_discard', notif);
+
+            const card_ids = notif.args.card_ids_to_discard;
+            const from_player_id = notif.args.from_player_id;
+
+            for (var key in card_ids) {
+                const card_id = card_ids[key];
+
+                if (this.player_id === from_player_id) {
+                    // Move from hand to discard
+                    var animation = this.hand.removeFromStockById(card_id, 'discard');
+                    console.log("animation", animation);
+                    dojo.attr('discard', 'data-state', 'card');
+                } else {
+                    var animation_id = this.slideTemporaryObject(
+                        `<div id="flip_card" class="deck"></div>`,
+                        `overall_player_board_${from_player_id}`,
+                        `overall_player_board_${from_player_id}`,
+                        'discard'
+                    ).play();
+                    dojo.connect(animation_id, 'onEnd', () => {
+                        dojo.attr('discard', 'data-state', 'card');
+                    });
+                }
+                
+            }
+            this.discard_counter.incValue(card_ids.length);
+        },
 
    });             
 });

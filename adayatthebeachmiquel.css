@@ -12,15 +12,42 @@
     margin-left: 5px;
 }
 
+.deck_holder {
+    display: flex;
+}
+
 .deck {
     display: inline-block;
     position: relative;
-    margin-top: 5px;
     width: 81px;
     height: 117px;
     background-image: url('img/cards.png');
     background-position: 0% 100%;
     background-size: 1900% 300%;
+}
+
+.discard {
+    display: inline-block;
+    position: relative;
+    width: 81px;
+    height: 117px;
+    background-image: url('img/cards.png');
+    background-position: 0% 100%;
+    background-size: 1900% 300%;
+}
+
+.discard[data-state="empty"] {
+    background-position: 6% 100%;
+}
+
+.card_count {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 2px;
+    color: white;
+    background-color: #00000099;
+    border-radius: 50%;
 }
 
 .stockitem {

@@ -18,6 +18,8 @@ declare(strict_types=1);
 
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
+use \Bga\GameFramework\Actions\Types\IntArrayParam;
+
 require_once "modules/php/constants.inc.php";
 require_once "modules/php/CardDeck.php";
 require_once "modules/php/SetDetector.php";
@@ -104,7 +106,17 @@ class ADayAtTheBeachMiquel extends Table
         $this->gamestate->nextState(ACT_EXCHANGE);
     }
     
-    public function actPutDownSet($card_ids) {
+    public function actPutDownSet(#[IntArrayParam] array $card_ids) {
+        $player_id = (int)$this->getActivePlayerId();
+
+        $this->deck->putDownSet($player_id, $card_ids);
+
+        $this->notifyAllPlayers("discard", clienttranslate('${playerName} puts down a set'), [
+            'playerName'=> $this->getActivePlayerName(),
+            'card_ids_to_discard' => $card_ids,
+            'from_player_id' => $player_id,
+        ]);
+
         $this->gamestate->nextState(ACT_PUT_DOWN_SET);
     }
     public function actPass(): void
@@ -228,6 +240,11 @@ class ADayAtTheBeachMiquel extends Table
 
         $result['hand'] = $this->deck->getHand($current_player_id);
         $result['ocean'] = $this->deck->getOcean();
+
+        $result['sizes'] = [
+            'deck' => $this->deck->deckSize(),
+            'discard' => $this->deck->discardSize(),
+        ];
 
         return $result;
     }
