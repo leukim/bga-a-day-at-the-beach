@@ -310,6 +310,7 @@ function (dojo, declare) {
             dojo.subscribe('exchange', this, 'notif_exchange');
             dojo.subscribe('discard', this, 'notif_discard');
             dojo.subscribe('increaseScore', this, 'notif_increaseScore');
+            dojo.subscribe('shuffle', this, 'notif_shuffle');
         },  
 
 
@@ -395,6 +396,21 @@ function (dojo, declare) {
 
         notif_increaseScore: function(notif) {
             this.scoreCtrl[ notif.args.player_id ].incValue(1);
+        },
+
+        notif_shuffle: function(notif) {
+            var animation_id = this.slideTemporaryObject(
+                `<div id="flip_card" class="deck"></div>`,
+                `discard`,
+                `discard`,
+                'deck'
+            ).play();
+            dojo.connect(animation_id, 'onEnd', () => {
+                dojo.attr('discard', 'data-state', 'empty');
+            });
+
+            this.discard_counter.toValue(0);
+            this.deck_counter.toValue(notif.args.deck_size);
         },
 
    });             

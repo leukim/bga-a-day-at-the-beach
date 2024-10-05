@@ -2,13 +2,16 @@
 
 class CardDeck {
     private $cards;
+    private $game;
 
-    public function __construct($deck) {
+    public function __construct($deck, $game) {
         $this->cards = $deck;
         $this->cards->init( "card" );
+        $this->game = $game;
     }
 
     public function init($card_types, $players): void {
+
         $cards = [];
         foreach($card_types as $id =>$card_type) {
             $cards[] = [ 'type' => $card_type['card_type'], 'type_arg' => $card_type['card_type_arg'], 'nbr' => $card_type['nbr']];
@@ -16,15 +19,22 @@ class CardDeck {
 
         $this->cards->createCards( $cards, 'deck' );
 
-        $this->cards->moveAllCardsInLocation( null, "deck" );
-        $this->cards->shuffle("deck");
-        $this->cards->autoreshuffle = true; // TODO Add callback to notify users
+        $this->cards->moveAllCardsInLocation( null, 'deck');
+        $this->cards->shuffle('deck');
 
         foreach( $players as $player_id => $player )
         {
             $cards = $this->cards->pickCards( 4, 'deck', $player_id );
         }
         $this->cards->pickCardsForLocation(4, 'deck', 'ocean');
+    }
+
+    private function checkCanPickCard() {
+        if ($this->deckSize() == 0) {
+            $this->cards->moveAllCardsInLocation('discard', 'deck');
+            $this->cards->shuffle('deck');
+            $this->game->on_deck_autoreshuffle($this->cards->countCardsInLocation('deck'));
+        }
     }
 
     public function getOcean() {
@@ -36,10 +46,12 @@ class CardDeck {
     }
 
     public function pickCardToOcean() {
+        $this->checkCanPickCard();
         return $this->cards->pickCardForLocation('deck', 'ocean');
     }
 
     public function pickCardToHand($player_id) {
+        $this->checkCanPickCard();
         return $this->cards->pickCardForLocation('deck', 'hand', $player_id);
     }
 

@@ -43,7 +43,7 @@ class ADayAtTheBeachMiquel extends Table
     {
         parent::__construct();
 
-        $this->deck = new CardDeck($this->getNew( "module.common.deck" ));
+        $this->deck = new CardDeck($this->getNew( "module.common.deck" ), $this);
         $this->set_detector = new SetDetector($this->deck, $this->card_types, $this);
 
         $this->initGameStateLabels([
@@ -326,6 +326,12 @@ class ADayAtTheBeachMiquel extends Table
 
         // Activate first player once everything has been initialized and ready.
         $this->activeNextPlayer();
+    }
+
+    public function on_deck_autoreshuffle($deck_size) {
+        $this->notifyAllPlayers('shuffle', clienttranslate('The deck is reshuffled'), [
+            'deck_size' => $deck_size,
+        ]);
     }
 
     /**

@@ -92,8 +92,9 @@ class SetDetector {
     private function find_group_in_hand($card_type, $hand): array {
         $group = [];
         foreach ($hand as $key => $card) {
+            $hand_card_type = $this->get_card_type($card);
             if (
-                $card_type['card_type'] == BLUE_CARD and 
+                $hand_card_type['card_type'] == BLUE_CARD and 
                 ($card['type_arg'] == $card_type['card_type_arg'] or $card['type_arg'] == $this->JOKER_TYPE_ARG)
             ) {
                 $group[] = $key;
