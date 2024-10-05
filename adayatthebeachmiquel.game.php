@@ -111,10 +111,18 @@ class ADayAtTheBeachMiquel extends Table
 
         $this->deck->putDownSet($player_id, $card_ids);
 
+        $sql = "UPDATE player SET player_score = player_score + 1 WHERE player_id = ".$player_id;
+        $this->dbQuery($sql);
+
         $this->notifyAllPlayers("discard", clienttranslate('${playerName} puts down a set'), [
             'playerName'=> $this->getActivePlayerName(),
             'card_ids_to_discard' => $card_ids,
             'from_player_id' => $player_id,
+        ]);
+
+        $this->notifyAllPlayers('increaseScore', clienttranslate('${playerName} scores one set'), [
+            'playerName' => $this->getActivePlayerName(),
+            'player_id' => $player_id,
         ]);
 
         $this->gamestate->nextState(ACT_PUT_DOWN_SET);
@@ -167,14 +175,20 @@ class ADayAtTheBeachMiquel extends Table
         // Retrieve the active player ID.
         $player_id = (int)$this->getActivePlayerId();
 
-        // Give some extra time to the active player when he completed an action
-        $this->giveExtraTime($player_id);
-        
-        $this->activeNextPlayer();
+        $score = $this->get_player_score($player_id);
 
-        // Go to another gamestate
-        // Here, we would detect if the game is over, and in this case use "endGame" transition instead 
-        $this->gamestate->nextState(ACT_NEXT_PLAYER);
+        if ($score < 3) {
+            // Give some extra time to the active player when he completed an action
+            $this->giveExtraTime($player_id);
+            
+            $this->activeNextPlayer();
+
+            // Go to another gamestate
+            // Here, we would detect if the game is over, and in this case use "endGame" transition instead 
+            $this->gamestate->nextState(ACT_NEXT_PLAYER);
+        } else {
+            $this->gamestate->nextState(ACT_END_GAME);
+        }
     }
 
     public function stCheckCanPutDownSet(): void {
@@ -353,5 +367,9 @@ class ADayAtTheBeachMiquel extends Table
         }
 
         throw new feException("Zombie mode not supported at this game state: \"{$state_name}\".");
+    }
+
+    function get_player_score($player_id) {
+        return $this->getUniqueValueFromDB("SELECT player_score FROM player WHERE player_id='$player_id'");
     }
 }

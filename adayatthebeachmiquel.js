@@ -309,6 +309,7 @@ function (dojo, declare) {
             dojo.subscribe('cardToPlayer', this, "notif_cardToPlayer");
             dojo.subscribe('exchange', this, 'notif_exchange');
             dojo.subscribe('discard', this, 'notif_discard');
+            dojo.subscribe('increaseScore', this, 'notif_increaseScore');
         },  
 
 
@@ -390,6 +391,10 @@ function (dojo, declare) {
                 
             }
             this.discard_counter.incValue(card_ids.length);
+        },
+
+        notif_increaseScore: function(notif) {
+            this.scoreCtrl[ notif.args.player_id ].incValue(1);
         },
 
    });             
