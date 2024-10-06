@@ -55,8 +55,11 @@ class ADayAtTheBeachMiquel extends Table
     }
 
     public function actSurfTurf() {
-        // TODO Check is current player?
         $current_player_id = (int)$this->getActivePlayerId();
+
+        if ($this->deck->deckSize() + $this->deck->discardSize() < 2 ) {
+            throw new BgaSystemException('Not enough cards left for this action');
+        }
 
         $cardToOcean = $this->deck->pickCardToOcean();
         $cardToHand = $this->deck->pickCardToHand($current_player_id);

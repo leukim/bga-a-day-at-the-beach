@@ -171,6 +171,9 @@ function (dojo, declare) {
                 {
                     case 'playerTurn':    
                         this.addActionButton('actSurfTurf-btn', _('Surf and Turf'), () => this.onSurfTurf());
+                        if (this.deck_counter.getValue() + this.discard_counter.getValue() < 2) {
+                            dojo.addClass('actSurfTurf-btn', 'disabled');
+                        }
                         this.addActionButton('actExchange-btn', _('Exchange'), () => this.onExchange());
                         dojo.addClass('actExchange-btn', 'disabled');
                         this.addActionButton('actYellowCard-btn', _('Play action card'), () => this.onPlayActionCard());
