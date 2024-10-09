@@ -75,11 +75,19 @@ class CardDeck {
         }
     }
 
+    public function playActionCard($card_id) {
+        $this->cards->playCard($card_id);
+    }
+
     public function deckSize() {
         return $this->cards->countCardsInLocation('deck');
     }
 
     public function discardSize() {
         return $this->cards->countCardsInLocation('discard');
+    }
+
+    public function getCard($card_id) {
+        return $this->cards->getCard($card_id);
     }
 }

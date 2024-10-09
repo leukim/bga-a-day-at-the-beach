@@ -224,6 +224,12 @@ function (dojo, declare) {
                 } else {
                     dojo.addClass('actExchange-btn', 'disabled');
                 }
+
+                if (hand_selected !== undefined && hand_selected.length === 1 && hand_selected[0].type >= 19) {
+                    dojo.removeClass('actYellowCard-btn', 'disabled');
+                } else {
+                    dojo.addClass('actYellowCard-btn', 'disabled');
+                }
             }
         },
 
@@ -275,7 +281,9 @@ function (dojo, declare) {
         {
             console.log( 'onPlayActionCard' );
 
-            this.bgaPerformAction("actPlayActionCard");        
+            const hand_card_id = this.hand.getSelectedItems()[0].id;
+
+            this.bgaPerformAction("actYellowCard", {card_id: hand_card_id});        
         },
 
         onPutDownSet: function(card_ids) {
@@ -314,6 +322,7 @@ function (dojo, declare) {
             dojo.subscribe('discard', this, 'notif_discard');
             dojo.subscribe('increaseScore', this, 'notif_increaseScore');
             dojo.subscribe('shuffle', this, 'notif_shuffle');
+            dojo.subscribe('takeFromOcean', this, 'notif_takeFromOcean');
         },  
 
 
@@ -415,6 +424,26 @@ function (dojo, declare) {
             this.discard_counter.toValue(0);
             this.deck_counter.toValue(notif.args.deck_size);
         },
+
+        notif_takeFromOcean: function(notif) {
+            console.log('notif_takeFromOcean', notif.args);
+
+            const taken_cards = notif.args.taken_cards;
+
+            for (var key in taken_cards) {
+                var card = taken_cards[key];
+
+                if (this.player_id == notif.args.player_id) {
+                    // TODO Sends to other player board?? Does not get in here?
+                    this.hand.addToStockWithId(this.getTypeFromCard(card), card.id, `ocean_item_${card.id}`);
+                    this.ocean.removeFromStockById(card.id);
+                } else {
+                    this.ocean.removeFromStockById(card.id, `overall_player_board_${notif.args.player_id}`);
+                }
+            }
+
+            this.discard_counter.incValue(1); // Action card played (animation?)
+        }
 
    });             
 });

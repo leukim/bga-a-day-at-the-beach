@@ -23,11 +23,13 @@ use \Bga\GameFramework\Actions\Types\IntArrayParam;
 require_once "modules/php/constants.inc.php";
 require_once "modules/php/CardDeck.php";
 require_once "modules/php/SetDetector.php";
+require_once "modules/php/ActionCards.php";
 
 class ADayAtTheBeachMiquel extends Table
 {
-    private $deck;
+    public $deck;
     private $set_detector;
+    private $action_cards;
 
     /**
      * Your global variables labels:
@@ -45,6 +47,7 @@ class ADayAtTheBeachMiquel extends Table
 
         $this->deck = new CardDeck($this->getNew( "module.common.deck" ), $this);
         $this->set_detector = new SetDetector($this->deck, $this->card_types, $this);
+        $this->action_cards = new ActionCards($this);
 
         $this->initGameStateLabels([
             "my_first_global_variable" => 10,
@@ -133,6 +136,25 @@ class ADayAtTheBeachMiquel extends Table
     public function actPass(): void
     {
         $this->gamestate->nextState(ACT_PASS);
+    }
+
+    public function actYellowCard(int $card_id) {
+        $this->debug("ABCD");
+        $this->action_cards->playCard($card_id);
+
+        $card = $this->deck->getCard($card_id);
+        $card_type_id = $card['type'] * 19 + $card['type_arg'];
+        $card_name = $this->card_types[$card_type_id]['card_name'];
+
+        $this->deck->playActionCard($card_id);
+
+        $this->notifyAllPlayers('playYellowCard', clienttranslate('${playerName} plays ${yellowCardName}'), [
+            'playerName'=> $this->getActivePlayerName(),
+            'yellowCardName'=> $card_name,
+            'player_id' => $this->getCurrentPlayerId(),
+        ]);
+
+        $this->gamestate->nextState(ACT_YELLOW_CARD);
     }
 
     /**
