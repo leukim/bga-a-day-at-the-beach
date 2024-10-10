@@ -46,7 +46,7 @@ class ADayAtTheBeachMiquel extends Table
         parent::__construct();
 
         $this->deck = new CardDeck($this->getNew( "module.common.deck" ), $this);
-        $this->set_detector = new SetDetector($this->deck, $this->card_types, $this);
+        $this->set_detector = new SetDetector($this->deck, $this->card_types);
         $this->action_cards = new ActionCards($this);
 
         $this->initGameStateLabels([
@@ -146,13 +146,14 @@ class ADayAtTheBeachMiquel extends Table
         $card_type_id = $card['type'] * 19 + $card['type_arg'];
         $card_name = $this->card_types[$card_type_id]['card_name'];
 
-        $this->deck->playActionCard($card_id);
-
         $this->notifyAllPlayers('playYellowCard', clienttranslate('${playerName} plays ${yellowCardName}'), [
             'playerName'=> $this->getActivePlayerName(),
             'yellowCardName'=> $card_name,
+            'yellow_card_id' => $card_id,
             'player_id' => $this->getCurrentPlayerId(),
         ]);
+
+        $this->deck->playActionCard($card_id);
 
         $this->gamestate->nextState(ACT_YELLOW_CARD);
     }

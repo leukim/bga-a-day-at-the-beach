@@ -3,16 +3,12 @@
 require_once "constants.inc.php";
 
 class SetDetector {
-    private $JOKER_TYPE_ARG = 1;
-
     private $cards;
     private $card_types;
-    private $that; // TODO Remove
 
-    public function __construct($deck, $card_types, $that) {
+    public function __construct($deck, $card_types) {
         $this->cards = $deck;
         $this->card_types = $card_types;
-        $this->that = $that;
     }
 
     public function get_available_sets($player_id): array {
@@ -32,7 +28,7 @@ class SetDetector {
                                 'name' => $card_type['card_name']." and ".$other_card_type['card_name'],
                                 'card_ids' => [$card['id'], $pair_in_hand_card['id']],
                             ];
-                            if ($hand[$key]['type_arg'] != 1) { // Is not a Joker
+                            if ($hand[$key]['type_arg'] != CARD_LIFESAVER) { // Is not a Joker
                                 unset($hand[$key]);
                             }
                         }
@@ -43,7 +39,7 @@ class SetDetector {
                         $card_ids = [];
                         foreach ($keys as $key) {
                             $card_ids[] = $hand[$key]['id'];
-                            if ($hand[$key]['type_arg'] != 1) { // Is not a Joker
+                            if ($hand[$key]['type_arg'] != CARD_LIFESAVER) { // Is not a Joker
                                 unset($hand[$key]);
                             }
                         }
@@ -81,7 +77,7 @@ class SetDetector {
             $card_type = $this->get_card_type($card);
             if (
                 $card_type['card_type'] == BLUE_CARD and 
-                ( $card['type_arg'] == $card_type_id or $card['type_arg'] == $this->JOKER_TYPE_ARG)
+                ( $card['type_arg'] == $card_type_id or $card['type_arg'] == CARD_LIFESAVER)
             ) {
                 return $card;
             }
@@ -95,7 +91,7 @@ class SetDetector {
             $hand_card_type = $this->get_card_type($card);
             if (
                 $hand_card_type['card_type'] == BLUE_CARD and 
-                ($card['type_arg'] == $card_type['card_type_arg'] or $card['type_arg'] == $this->JOKER_TYPE_ARG)
+                ($card['type_arg'] == $card_type['card_type_arg'] or $card['type_arg'] == CARD_LIFESAVER)
             ) {
                 $group[] = $key;
             }

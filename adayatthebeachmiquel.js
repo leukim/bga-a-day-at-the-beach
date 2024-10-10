@@ -322,6 +322,7 @@ function (dojo, declare) {
             dojo.subscribe('discard', this, 'notif_discard');
             dojo.subscribe('increaseScore', this, 'notif_increaseScore');
             dojo.subscribe('shuffle', this, 'notif_shuffle');
+            dojo.subscribe('playYellowCard', this, 'notif_playYellowCard');
             dojo.subscribe('takeFromOcean', this, 'notif_takeFromOcean');
         },  
 
@@ -425,6 +426,25 @@ function (dojo, declare) {
             this.deck_counter.toValue(notif.args.deck_size);
         },
 
+        notif_playYellowCard: function(notif) {
+            if (this.player_id == notif.args.player_id) {
+                this.hand.removeFromStockById(notif.args.yellow_card_id, 'discard');
+                dojo.attr('discard', 'data-state', 'card');
+            } else {
+                var animation_id = this.slideTemporaryObject(
+                    '<div id="flip_card" class="deck"></div>',
+                    'discard',
+                    `overall_player_board_${notif.args.player_id}`,
+                    'discard'
+                ).play();
+                dojo.connect(animation_id, 'onEnd', () => {
+                    dojo.attr('discard', 'data-state', 'card');
+                });
+            }
+
+            this.discard_counter.incValue(1);
+        },
+
         notif_takeFromOcean: function(notif) {
             console.log('notif_takeFromOcean', notif.args);
 
@@ -434,7 +454,6 @@ function (dojo, declare) {
                 var card = taken_cards[key];
 
                 if (this.player_id == notif.args.player_id) {
-                    // TODO Sends to other player board?? Does not get in here?
                     this.hand.addToStockWithId(this.getTypeFromCard(card), card.id, `ocean_item_${card.id}`);
                     this.ocean.removeFromStockById(card.id);
                 } else {
@@ -442,7 +461,7 @@ function (dojo, declare) {
                 }
             }
 
-            this.discard_counter.incValue(1); // Action card played (animation?)
+            
         }
 
    });             
