@@ -12,8 +12,23 @@ class ActionCards {
 
         if ($card['type'] == YELLOW_CARD) {
             switch ($card['type_arg']) {
-                case 10:
-                    $this->takeFromOcean(BLUE_CARD, CARD_FRISBEE); // Take al Frisbees
+                case CARD_PLAYFUL_PUPPY:
+                    $this->takeFromOcean(BLUE_CARD, CARD_FRISBEE);
+                    break;
+                case CARD_HURRICANE:
+                    $this->takeFromOcean(BLUE_CARD, CARD_KITE);
+                    break;
+                case CARD_BEACH_UMBRELLA:
+                    $this->takeFromOcean(BLUE_CARD, CARD_SANDCASTLE);
+                    break;
+                case CARD_SEAGULL:
+                    $this->takeFromOcean(BLUE_CARD, CARD_STARFISH);
+                    break;
+                case CARD_HERMIT_CRAB:
+                    $this->takeFromOcean(BLUE_CARD, CARD_SEASHELL);
+                    break;
+                case CARD_LIFEGUARD:
+                    $this->takeFromOcean(BLUE_CARD, CARD_SWIMMER);
                     break;
             }
         }
