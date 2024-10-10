@@ -19,7 +19,8 @@ define([
     "dojo","dojo/_base/declare",
     "ebg/core/gamegui",
     "ebg/counter",
-    "ebg/stock"
+    "ebg/stock",
+    "./modules/js/actionCards"
 ],
 function (dojo, declare) {
     return declare("bgagame.adayatthebeachmiquel", ebg.core.gamegui, {
@@ -28,6 +29,8 @@ function (dojo, declare) {
               
             this.cards_per_row = 19;
             this.card_types = 2;
+
+            this.action_cards = new ActionCards(this);
         },
         
         /*
@@ -281,9 +284,9 @@ function (dojo, declare) {
         {
             console.log( 'onPlayActionCard' );
 
-            const hand_card_id = this.hand.getSelectedItems()[0].id;
+            const card = this.hand.getSelectedItems()[0];
 
-            this.bgaPerformAction("actYellowCard", {card_id: hand_card_id});        
+            this.action_cards.play(card);    
         },
 
         onPutDownSet: function(card_ids) {
