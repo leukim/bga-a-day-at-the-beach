@@ -2,12 +2,12 @@
 
 class CardDeck {
     private $cards;
-    private $game;
+    private $table;
 
-    public function __construct($deck, $game) {
+    public function __construct($deck, $table) {
         $this->cards = $deck;
         $this->cards->init( "card" );
-        $this->game = $game;
+        $this->table = $table;
     }
 
     public function init($card_types, $players): void {
@@ -33,7 +33,7 @@ class CardDeck {
         if ($this->deckSize() == 0) {
             $this->cards->moveAllCardsInLocation('discard', 'deck');
             $this->cards->shuffle('deck');
-            $this->game->on_deck_autoreshuffle($this->cards->countCardsInLocation('deck'));
+            $this->table->on_deck_autoreshuffle($this->cards->countCardsInLocation('deck'));
         }
     }
 
@@ -53,6 +53,10 @@ class CardDeck {
     public function pickCardToHand($player_id) {
         $this->checkCanPickCard();
         return $this->cards->pickCardForLocation('deck', 'hand', $player_id);
+    }
+
+    public function discardOceanCard($card_id) {
+        return $this->cards->moveCard($card_id, 'discard');
     }
 
     public function cardToPlayer($card_id, $player_id) {
@@ -89,5 +93,10 @@ class CardDeck {
 
     public function getCard($card_id) {
         return $this->cards->getCard($card_id);
+    }
+
+    public function getCardTypeId($card_id) {
+        $card = $this->getCard($card_id);
+        return $card['type'] * 19 + $card['type_arg'];
     }
 }

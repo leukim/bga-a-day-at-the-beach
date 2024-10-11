@@ -138,9 +138,10 @@ class ADayAtTheBeachMiquel extends Table
         $this->gamestate->nextState(ACT_PASS);
     }
 
-    public function actYellowCard(int $card_id) {
-        $this->debug("ABCD");
-        $this->action_cards->playCard($card_id);
+    public function actYellowCard(int $card_id, int $target_card_id) {
+        $player_id = (int)$this->getActivePlayerId();
+        
+        $this->action_cards->playCard($player_id, $card_id, $target_card_id);
 
         $card = $this->deck->getCard($card_id);
         $card_type_id = $card['type'] * 19 + $card['type_arg'];
@@ -150,7 +151,8 @@ class ADayAtTheBeachMiquel extends Table
             'playerName'=> $this->getActivePlayerName(),
             'yellowCardName'=> $card_name,
             'yellow_card_id' => $card_id,
-            'player_id' => $this->getCurrentPlayerId(),
+            'yellow_card_type_id' => $card_type_id,
+            'player_id' => $player_id,
         ]);
 
         $this->deck->playActionCard($card_id);

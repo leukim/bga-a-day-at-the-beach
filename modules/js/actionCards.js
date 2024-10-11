@@ -38,11 +38,11 @@ const CARD_TREASURE_CHEST = 30;
 const CARD_SURFER = 26;
 
 class ActionCards {
-    constructor(gameCtrl) {
-        this.gameCtrl = gameCtrl;
+    constructor(table) {
+        this.table = table;
     }
 
-    play(card) {
+    play(card, selected_boat_card = null) {
         var params = {};
 
         switch(card.type) {
@@ -52,11 +52,27 @@ class ActionCards {
             case CARD_SEAGULL:
             case CARD_HERMIT_CRAB:
             case CARD_LIFEGUARD:
-                params = {card_id: card.id};
+                params = {card_id: card.id, target_card_id: -1};
+                break;
+            case CARD_BOAT:
+                if (selected_boat_card === null) {
+                    this._activateBoat(card);  // If initial boat selection we will only show the dialog
+                }
+                // Boat target selected, send action
+                params = { card_id: card.id, target_card_id: selected_boat_card.id }
                 break;
         }
 
-        this.gameCtrl.bgaPerformAction("actYellowCard", params); 
+        this.table.bgaPerformAction("actYellowCard", params); 
+    }
+
+    _activateBoat(card) {
+        this.table.clientStateArgs = {
+            card,
+        };
+        this.table.setClientState("client_playerPicksActionCardFromOcean", {
+            descriptionmyturn : _("${you} must pick an action card from the ocean to play"),
+        });
     }
 }
 

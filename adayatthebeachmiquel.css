@@ -53,3 +53,88 @@
 .stockitem {
     background-size: 1900% 300%;
 }
+
+.card {
+    display: inline-block;
+    position: relative;
+    width: 81px;
+    height: 117px;
+    background-image: url('img/cards.png');
+    background-size: 1900% 300%;
+}
+
+.card_19 {
+    background-position: 0% 50%;
+}
+
+.card_20 {
+    background-position: 5.5% 50%;
+}
+
+.card_21 {
+    background-position: 11.2% 50%;
+}
+
+.card_22 {
+    background-position: 16.7% 50%;
+}
+
+.card_23 {
+    background-position: 22.2% 50%;
+}
+
+.card_24 {
+    background-position: 27.8% 50%;
+}
+
+.card_25 {
+    background-position: 33.3% 50%;
+}
+
+.card_26 {
+    background-position: 38.8% 50%;
+}
+
+.card_27 {
+    background-position: 44.5% 50%;
+}
+
+.card_28 {
+    background-position: 49.9% 50%;
+}
+
+.card_29 {
+    background-position: 55.6% 50%;
+}
+
+.card_30 {
+    background-position: 61.1% 50%;
+}
+
+.card_31 {
+    background-position: 66.7% 50%;
+}
+
+.card_32 {
+    background-position: 72.2% 50%;
+}
+
+.card_33 {
+    background-position: 77.8% 50%;
+}
+
+.card_34 {
+    background-position: 83.3% 50%;
+}
+
+.card_35 {
+    background-position: 88.9% 50%;
+}
+
+.card_36 {
+    background-position: 94.5% 50%;
+}
+
+.card_37 {
+    background-position: 100% 50%;
+}

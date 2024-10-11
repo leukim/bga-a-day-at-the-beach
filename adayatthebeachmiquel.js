@@ -123,6 +123,23 @@ function (dojo, declare) {
             this.hand.addToStockWithId(this.getTypeFromCard(card), card.id);
         },
 
+        addImageActionButton: function(id, div, handler, bcolor, tooltip) {
+            if (typeof bcolor == "undefined") {
+                bcolor = "gray";
+            }
+            // this will actually make a transparent button id color = gray
+            this.addActionButton(id, div, handler, null, false, bcolor);
+            // remove border, for images it better without
+            dojo.style(id, "border", "none");
+            // but add shadow style (box-shadow, see css)
+            dojo.addClass(id, "shadow bgaimagebutton");
+            // you can also add additional styles, such as background
+            if (tooltip) {
+                dojo.attr(id, "title", tooltip);
+            }
+            return $(id);
+        },
+
         ///////////////////////////////////////////////////
         //// Game & client states
         
@@ -194,8 +211,27 @@ function (dojo, declare) {
 
                         this.addActionButton('actPass-btn', _('Pass'), () => this.onPass());
                         break;
+                    case 'client_playerPicksActionCardFromOcean':
+                        const ocean = this.ocean.getAllItems();
+                        for (var key in ocean) {
+                            const card = ocean[key];
+                            if (card.type >= 19) {
+                                this.addImageActionButton(
+                                    `client_selectCard${card.id}-btn`,
+                                    `<div class="card card_${card.type}"></div>`,
+                                    () => this.playBoat(card)
+                                );
+                            }
+                        }
+                        this.addActionButton('cancelClientState-btn', _('Cancel'), () => this.restoreServerGameState());
+                        break;
                 }
             }
+        },
+
+        playBoat: function(card) {
+            console.log("playBoat", this.clientStateArgs.card.id, card.id);
+            this.action_cards.play(this.clientStateArgs.card, card);
         },
 
         onChangeOceanSelection: function(control_name, item_id) {
@@ -234,6 +270,10 @@ function (dojo, declare) {
                     dojo.addClass('actYellowCard-btn', 'disabled');
                 }
             }
+        },
+
+        restoreServerGameState: function() {
+            this.setClientState("playerTurn");
         },
 
         ///////////////////////////////////////////////////
@@ -327,6 +367,7 @@ function (dojo, declare) {
             dojo.subscribe('shuffle', this, 'notif_shuffle');
             dojo.subscribe('playYellowCard', this, 'notif_playYellowCard');
             dojo.subscribe('takeFromOcean', this, 'notif_takeFromOcean');
+            dojo.subscribe('playBoat', this, 'notif_playBoat');
         },  
 
 
@@ -435,10 +476,11 @@ function (dojo, declare) {
                 dojo.attr('discard', 'data-state', 'card');
             } else {
                 var animation_id = this.slideTemporaryObject(
-                    '<div id="flip_card" class="deck"></div>',
+                    `<div id="flip_card" class="card card_${notif.args.yellow_card_type_id}"></div>`,
                     'discard',
                     `overall_player_board_${notif.args.player_id}`,
-                    'discard'
+                    'discard',
+                    1000
                 ).play();
                 dojo.connect(animation_id, 'onEnd', () => {
                     dojo.attr('discard', 'data-state', 'card');
@@ -465,7 +507,13 @@ function (dojo, declare) {
             }
 
             
-        }
+        },
 
+        notif_playBoat: function(notif) {
+            console.log('notif_playBoat', notif.args);
+
+            this.ocean.removeFromStockById(notif.args.boat_target_id, 'discard');
+            this.discard_counter.incValue(1);
+        },
    });             
 });

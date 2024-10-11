@@ -7,7 +7,7 @@ class ActionCards {
         $this->game = $game;
     }
 
-    public function playCard($card_id) {
+    public function playCard($player_id, $card_id, $target_id) {
         $card = $this->game->deck->getCard($card_id);
 
         if ($card['type'] == YELLOW_CARD) {
@@ -30,6 +30,9 @@ class ActionCards {
                 case CARD_LIFEGUARD:
                     $this->takeFromOcean(BLUE_CARD, CARD_SWIMMER);
                     break;
+                case CARD_BOAT:
+                    $this->boat($player_id, $card_id, $target_id);
+                    break;
             }
         }
     }
@@ -50,12 +53,27 @@ class ActionCards {
 
         $card_type_id = $card_type * 19 + $card_type_arg;
 
-        $this->game->notifyAllPlayers('takeFromOcean', clienttranslate('${playerName} takes ${nbr} ${cardName} from the Ocean'), [
+        $this->game->notifyAllPlayers('takeFromOcean', clienttranslate('${playerName} takes ${nbr} ${cardName} from the ocean'), [
             'playerName' =>  $this->game->getActivePlayerName(),
             'nbr' => $nbr,
             'cardName' => $this->game->card_types[$card_type_id]['card_name'],
             'player_id' => $player_id,
             'taken_cards' => $taken_cards,
         ]);
+    }
+
+    private function boat($player_id, $card_id, $target_card_id) {
+
+        $this->game->deck->discardOceanCard($card_id);
+        $target_card_type_id = $this->game->deck->getCardTypeId($target_card_id);
+
+        $this->game->notifyAllPlayers('playBoat', clienttranslate('${playerName} plays ${cardName} from the ocean'), [
+            'playerName'=> $this->game->getActivePlayerName(),
+            'cardName' => $this->game->card_types[$target_card_type_id]['card_name'],
+            'player_id' => $player_id,
+            'boat_target_id' => $target_card_id
+        ]);
+        
+        $this->playCard($player_id, $target_card_id, -1);
     }
 }
