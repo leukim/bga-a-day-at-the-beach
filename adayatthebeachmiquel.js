@@ -25,8 +25,6 @@ define([
 function (dojo, declare) {
     return declare("bgagame.adayatthebeachmiquel", ebg.core.gamegui, {
         constructor: function(){
-            console.log('adayatthebeachmiquel constructor');
-              
             this.cards_per_row = 19;
             this.card_types = 2;
 
@@ -47,8 +45,6 @@ function (dojo, declare) {
         */
         
         setup: function( gamedatas ) {
-            console.log( "Starting game setup" );
-            
             this.ocean = new ebg.stock();
             this.ocean.create(this, $('ocean'), 81, 117);
             this.ocean.image_items_per_row = this.cards_per_row;
@@ -98,8 +94,6 @@ function (dojo, declare) {
  
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
-
-            console.log( "Ending game setup" );
         },
        
         // Get card type by row and column (x, y) 0-based
@@ -146,8 +140,7 @@ function (dojo, declare) {
         // onEnteringState: this method is called each time we are entering into a new game state.
         //                  You can use this method to perform some user interface changes at this moment.
         //
-        onEnteringState: function( stateName, args )
-        {
+        onEnteringState: function( stateName, args ) {
             console.log( 'Entering state: ', stateName, args );
             
             switch( stateName )
@@ -165,8 +158,7 @@ function (dojo, declare) {
         // onLeavingState: this method is called each time we are leaving a game state.
         //                 You can use this method to perform some user interface changes at this moment.
         //
-        onLeavingState: function( stateName )
-        {
+        onLeavingState: function( stateName ) {
             console.log( 'Leaving state: ', stateName );
             
             switch( stateName )
@@ -181,10 +173,7 @@ function (dojo, declare) {
         // onUpdateActionButtons: in this method you can manage "action buttons" that are displayed in the
         //                        action status bar (ie: the HTML links in the status bar).
         //        
-        onUpdateActionButtons: function( stateName, args )
-        {
-            console.log( 'onUpdateActionButtons: ', stateName );
-                      
+        onUpdateActionButtons: function( stateName, args ) {
             if( this.isCurrentPlayerActive() )
             {            
                 switch( stateName )
@@ -230,13 +219,11 @@ function (dojo, declare) {
         },
 
         playBoat: function(card) {
-            console.log("playBoat", this.clientStateArgs.card.id, card.id);
             this.action_cards.play(this.clientStateArgs.card, card);
         },
 
         onChangeOceanSelection: function(control_name, item_id) {
             if( this.isCurrentPlayerActive() ) {
-                console.log("onChangeOceanSelection");
                 const ocean_selected = this.ocean.getSelectedItems();
                 const hand_selected = this.hand.getSelectedItems();
                 if (
@@ -252,7 +239,6 @@ function (dojo, declare) {
 
         onChangeHandSelection: function(control_name, item_id) {
             if( this.isCurrentPlayerActive() ) {
-                console.log("onChangeHandSelection");
                 const ocean_selected = this.ocean.getSelectedItems();
                 const hand_selected = this.hand.getSelectedItems();
                 if (
@@ -303,41 +289,28 @@ function (dojo, declare) {
         
         // Example:
         
-        onSurfTurf: function()
-        {
-            console.log( 'onSurfTurf' );
-
+        onSurfTurf: function() {
             this.bgaPerformAction("actSurfTurf");      
         },
 
-        onExchange: function()
-        {
-            console.log( 'onExchange');
-
+        onExchange: function() {
             const ocean_card_id = this.ocean.getSelectedItems()[0].id;
             const hand_card_id = this.hand.getSelectedItems()[0].id;
 
             this.bgaPerformAction("actExchange", {ocean_card_id, hand_card_id});
         },
 
-        onPlayActionCard: function()
-        {
-            console.log( 'onPlayActionCard' );
-
+        onPlayActionCard: function() {
             const card = this.hand.getSelectedItems()[0];
 
             this.action_cards.play(card);    
         },
 
         onPutDownSet: function(card_ids) {
-            console.log('onPutDownSet', card_ids);
-
             this.bgaPerformAction("actPutDownSet", {card_ids: card_ids.join(',')});
         },
 
         onPass: function() {
-            console.log('onPass');
-
             this.bgaPerformAction('actPass');
         },
         
@@ -355,45 +328,43 @@ function (dojo, declare) {
         */
         setupNotifications: function()
         {
-            console.log( 'notifications subscriptions setup' );
+            const notifs = [
+                ['cardToOcean', 500],
+                ['cardToHand', 0],
+                ['cardToPlayer', 0],
+                ['exchange', 0],
+                ['discard', 0],
+                ['increaseScore', 0],
+                ['shuffle', 0],
+                ['playYellowCard', 0],
+                ['takeFromOcean', 0],
+                ['playBoat', 0],
+                ['discardHand', 0],
+                ['pickCards', 500],
+            ];
 
-            dojo.subscribe('cardToOcean', this, "notif_cardToOcean");
-            this.notifqueue.setSynchronous('cardToOcean', 500);
-            dojo.subscribe('cardToHand', this, "notif_cardToHand");
-            dojo.subscribe('cardToPlayer', this, "notif_cardToPlayer");
-            dojo.subscribe('exchange', this, 'notif_exchange');
-            dojo.subscribe('discard', this, 'notif_discard');
-            dojo.subscribe('increaseScore', this, 'notif_increaseScore');
-            dojo.subscribe('shuffle', this, 'notif_shuffle');
-            dojo.subscribe('playYellowCard', this, 'notif_playYellowCard');
-            dojo.subscribe('takeFromOcean', this, 'notif_takeFromOcean');
-            dojo.subscribe('playBoat', this, 'notif_playBoat');
-            dojo.subscribe('bonfire', this, 'notif_bonfire');
-            dojo.subscribe('discardHand', this, 'notif_discardHand');
-            dojo.subscribe('pickCards', this, 'notif_pickCards');
-            this.notifqueue.setSynchronous('discardHand', 500);
+            notifs.forEach((notif) => {
+                dojo.subscribe(notif[0], this, `notif_${notif[0]}`);
+                if (notif[1] > 0) {
+                    this.notifqueue.setSynchronous(notif[0], notif[1]);
+                }
+            });
         },  
 
 
         notif_cardToOcean: function(notif) {
-            console.log('notif_cardToOcean');
-            
             const card = notif.args.card;
             this.ocean.addToStockWithId(this.getTypeFromCard(card), card.id, 'deck');
             this.deck_counter.incValue(-1);
         },
 
         notif_cardToHand: function(notif) {
-            console.log('notif_cardToHand');
-            
             const card = notif.args.card;
             this.hand.addToStockWithId(this.getTypeFromCard(card), card.id, 'deck');
             this.deck_counter.incValue(-1);
         },
 
         notif_cardToPlayer: function(notif) {
-            console.log('nofid_cardToPlayer');
-
             const card = this.getCardBackId();
             const player_id = notif.args.player_id;
             document.getElementById('deck_panel').insertAdjacentHTML('beforeend', '<div id="flip_card" class="deck"></div>');
@@ -403,8 +374,6 @@ function (dojo, declare) {
         },
 
         notif_exchange: function(notif) {
-            console.log('notif_exchange', notif);
-
             const player_id = notif.args.player_id;
 
             const card_to_player = notif.args.card_to_player;
@@ -426,8 +395,6 @@ function (dojo, declare) {
         },
 
         notif_discard: function(notif) {
-            console.log('notif_discard', notif);
-
             const card_ids = notif.args.card_ids_to_discard;
             const from_player_id = notif.args.from_player_id;
 
@@ -495,8 +462,6 @@ function (dojo, declare) {
         },
 
         notif_takeFromOcean: function(notif) {
-            console.log('notif_takeFromOcean', notif.args);
-
             const taken_cards = notif.args.taken_cards;
 
             for (var key in taken_cards) {
@@ -514,8 +479,6 @@ function (dojo, declare) {
         },
 
         notif_playBoat: function(notif) {
-            console.log('notif_playBoat', notif.args);
-
             this.ocean.removeFromStockById(notif.args.boat_target_id, 'discard');
             this.discard_counter.incValue(1);
         },
@@ -545,7 +508,6 @@ function (dojo, declare) {
         },
 
         notif_pickCards: function(notif) {
-            console.log('CARDS', notif.args.picked_cards);
             for (key in notif.args.picked_cards) {
                 const card = notif.args.picked_cards[key];
 
