@@ -368,6 +368,10 @@ function (dojo, declare) {
             dojo.subscribe('playYellowCard', this, 'notif_playYellowCard');
             dojo.subscribe('takeFromOcean', this, 'notif_takeFromOcean');
             dojo.subscribe('playBoat', this, 'notif_playBoat');
+            dojo.subscribe('bonfire', this, 'notif_bonfire');
+            dojo.subscribe('discardHand', this, 'notif_discardHand');
+            dojo.subscribe('pickCards', this, 'notif_pickCards');
+            this.notifqueue.setSynchronous('discardHand', 500);
         },  
 
 
@@ -514,6 +518,39 @@ function (dojo, declare) {
 
             this.ocean.removeFromStockById(notif.args.boat_target_id, 'discard');
             this.discard_counter.incValue(1);
+        },
+
+        notif_bonfire: function(notif) {
+            // TODO Update active player hand cards count when it exists (to 4)
+
+            if (this.player_id != notif.args.player_id) {
+                var animation_id = this.slideTemporaryObject(
+                    `<div id="flip_card" class="deck"></div>`,
+                    'discard',
+                    `overall_player_board_${notif.args.player_id}`,
+                    'discard',
+                    1250
+                ).play();
+                dojo.connect(animation_id, 'onEnd', () => {
+                    dojo.attr('discard', 'data-state', 'card');
+                });
+            }
+
+            this.deck_counter.incValue(-notif.args.nbr_discards);
+            this.discard_counter.incValue(notif.args.nbr_discards);
+        },
+
+        notif_discardHand: function(notif) {
+            this.hand.removeAllTo('discard');
+        },
+
+        notif_pickCards: function(notif) {
+            console.log('CARDS', notif.args.picked_cards);
+            for (key in notif.args.picked_cards) {
+                const card = notif.args.picked_cards[key];
+
+                this.hand.addToStockWithId(this.getTypeFromCard(card), card.id, 'deck');
+            }
         },
    });             
 });

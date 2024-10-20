@@ -61,6 +61,9 @@ class ActionCards {
                 // Boat target selected, send action
                 params = { card_id: card.id, target_card_id: selected_boat_card.id }
                 break;
+            case CARD_BONFIRE:
+                params = {card_id: card.id, target_card_id: 0};
+                break;
         }
 
         this.table.bgaPerformAction("actYellowCard", params); 

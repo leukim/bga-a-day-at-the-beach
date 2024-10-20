@@ -33,6 +33,8 @@ class ActionCards {
                 case CARD_BOAT:
                     $this->boat($player_id, $card_id, $target_id);
                     break;
+                case CARD_BONFIRE:
+                    $this->bonfire($player_id);
             }
         }
     }
@@ -75,5 +77,24 @@ class ActionCards {
         ]);
         
         $this->playCard($player_id, $target_card_id, -1);
+    }
+
+    private function bonfire($player_id) {
+        $nbr_discards = $this->game->deck->handSize($player_id) - 1; // Player card is not counted as "discarded"
+        $this->game->deck->discardHand($player_id);
+
+        $picked_cards = $this->game->deck->pickCards(4, $player_id);
+
+        $this->game->notifyAllPlayers('bonfire', clienttranslate('${playerName} discards their hand and picks new cards'), [
+            'playerName'=> $this->game->getActivePlayerName(),
+            'player_id' => $player_id,
+            'nbr_discards' => $nbr_discards
+        ]);
+
+        $this->game->notifyPlayer($player_id, 'discardHand', clienttranslate('You discard your hand'), []);
+
+        $this->game->notifyPlayer($player_id, 'pickCards', clienttranslate('You pick 4 cards from the deck'), [
+            'picked_cards' => $picked_cards
+        ]);
     }
 }
