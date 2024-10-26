@@ -91,6 +91,29 @@ function (dojo, declare) {
                 this.discard_counter.setValue(gamedatas['sizes']['discard']);
                 dojo.attr('discard', 'data-state', 'card');
             }
+
+            this.hand_counters = {};
+
+            // Setting up player boards
+            for( var player_id in gamedatas.players ) {
+                // var player = gamedatas.players[player_id];
+                            
+                this.getPlayerPanelElement(player_id).innerHTML =
+                    `<div style="padding: 5px;">
+                        <span class="deck_mini"></span>
+                        <span id="card_count_${player_id}"></span>
+                    </div>`;
+
+                this.hand_counters[player_id] = new ebg.counter();
+                this.hand_counters[player_id].create(`card_count_${player_id}`);
+            }
+
+            for (const key in gamedatas['sizes']['players']) {
+                const player_info = gamedatas['sizes']['players'][key];
+                this.hand_counters[player_info.player_id].setValue(player_info.size);
+            }
+
+            // TODO MODIFY HAND COUNTS IN OTHER METHODS
  
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
@@ -362,6 +385,7 @@ function (dojo, declare) {
             const card = notif.args.card;
             this.hand.addToStockWithId(this.getTypeFromCard(card), card.id, 'deck');
             this.deck_counter.incValue(-1);
+            this.hand_counters[this.player_id].incValue(1);
         },
 
         notif_cardToPlayer: function(notif) {
@@ -371,6 +395,7 @@ function (dojo, declare) {
             this.placeOnObject('deck_panel', 'flip_card');
             this.slideToObjectAndDestroy('flip_card', 'overall_player_board_'+player_id, 1000);
             this.deck_counter.incValue(-1);
+            this.hand_counters[player_id].incValue(1);
         },
 
         notif_exchange: function(notif) {
@@ -420,6 +445,7 @@ function (dojo, declare) {
                 
             }
             this.discard_counter.incValue(card_ids.length);
+            this.hand_counters[from_player_id].incValue(-card_ids.length);
         },
 
         notif_increaseScore: function(notif) {
@@ -459,6 +485,7 @@ function (dojo, declare) {
             }
 
             this.discard_counter.incValue(1);
+            this.hand_counters[notif.args.player_id].incValue(-1);
         },
 
         notif_takeFromOcean: function(notif) {
@@ -474,8 +501,8 @@ function (dojo, declare) {
                     this.ocean.removeFromStockById(card.id, `overall_player_board_${notif.args.player_id}`);
                 }
             }
-
             
+            this.hand_counters[notif.args.player_id].incValue(taken_cards.length);
         },
 
         notif_playBoat: function(notif) {
@@ -484,8 +511,6 @@ function (dojo, declare) {
         },
 
         notif_bonfire: function(notif) {
-            // TODO Update active player hand cards count when it exists (to 4)
-
             if (this.player_id != notif.args.player_id) {
                 var animation_id = this.slideTemporaryObject(
                     `<div id="flip_card" class="deck"></div>`,
@@ -501,9 +526,11 @@ function (dojo, declare) {
 
             this.deck_counter.incValue(-notif.args.nbr_discards);
             this.discard_counter.incValue(notif.args.nbr_discards);
+            this.hand_counters[notif.args.player_id].setValue(4);
         },
 
         notif_discardHand: function(notif) {
+            this.hand_counters[this.player_id].setValue(0);
             this.hand.removeAllTo('discard');
         },
 

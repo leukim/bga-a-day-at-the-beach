@@ -283,9 +283,17 @@ class ADayAtTheBeachMiquel extends Table
         $result['hand'] = $this->deck->getHand($current_player_id);
         $result['ocean'] = $this->deck->getOcean();
 
+        $hand_sizes = [];
+        $players = $this->loadPlayersBasicInfos();
+        foreach ($players as $player_id => $info) {
+            $hand_size = $this->deck->handSize($player_id);
+            $hand_sizes[] = ['player_id' => $player_id, 'size'=> $hand_size];
+        }
+
         $result['sizes'] = [
             'deck' => $this->deck->deckSize(),
             'discard' => $this->deck->discardSize(),
+            'players' => $hand_sizes,
         ];
 
         return $result;

@@ -26,6 +26,16 @@
     background-size: 1900% 300%;
 }
 
+.deck_mini {
+    display: inline-block;
+    position: relative;
+    width: 15px;
+    height: 22px;
+    background-image: url('img/cards.png');
+    background-position: 0% 100%;
+    background-size: 1900% 300%;
+}
+
 .discard {
     display: inline-block;
     position: relative;
