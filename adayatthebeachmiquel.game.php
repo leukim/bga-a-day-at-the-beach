@@ -117,14 +117,20 @@ class ADayAtTheBeachMiquel extends Table
 
         $this->deck->putDownSet($player_id, $card_ids);
 
-        $sql = "UPDATE player SET player_score = player_score + 1 WHERE player_id = ".$player_id;
-        $this->dbQuery($sql);
+        $discards = [];
+        foreach ($card_ids as $card_id) {
+            $discards[] = $this->deck->getCard($card_id);
+        }
 
         $this->notifyAllPlayers("discard", clienttranslate('${playerName} puts down a set'), [
             'playerName'=> $this->getActivePlayerName(),
             'card_ids_to_discard' => $card_ids,
+            'discards' => $discards,
             'from_player_id' => $player_id,
         ]);
+
+        $sql = "UPDATE player SET player_score = player_score + 1 WHERE player_id = ".$player_id;
+        $this->dbQuery($sql);
 
         $this->notifyAllPlayers('increaseScore', clienttranslate('${playerName} scores one set'), [
             'playerName' => $this->getActivePlayerName(),
@@ -141,20 +147,22 @@ class ADayAtTheBeachMiquel extends Table
     public function actYellowCard(int $card_id, int $target_card_id) {
         $player_id = (int)$this->getActivePlayerId();
         
-        $this->action_cards->playCard($player_id, $card_id, $target_card_id);
-
+        
         $card = $this->deck->getCard($card_id);
         $card_type_id = $card['type'] * 19 + $card['type_arg'];
         $card_name = $this->card_types[$card_type_id]['card_name'];
-
+        
         $this->notifyAllPlayers('playYellowCard', clienttranslate('${playerName} plays ${yellowCardName}'), [
             'playerName'=> $this->getActivePlayerName(),
             'yellowCardName'=> $card_name,
+            'yellow_card' => $card,
             'yellow_card_id' => $card_id,
             'yellow_card_type_id' => $card_type_id,
             'player_id' => $player_id,
         ]);
-
+        
+        $this->action_cards->playCard($player_id, $card_id, $target_card_id);
+        
         $this->deck->playActionCard($card_id);
 
         $this->gamestate->nextState(ACT_YELLOW_CARD);
@@ -282,6 +290,7 @@ class ADayAtTheBeachMiquel extends Table
 
         $result['hand'] = $this->deck->getHand($current_player_id);
         $result['ocean'] = $this->deck->getOcean();
+        $result['discard'] = array_values($this->deck->getDiscard());
 
         $hand_sizes = [];
         $players = $this->loadPlayersBasicInfos();
@@ -292,7 +301,6 @@ class ADayAtTheBeachMiquel extends Table
 
         $result['sizes'] = [
             'deck' => $this->deck->deckSize(),
-            'discard' => $this->deck->discardSize(),
             'players' => $hand_sizes,
         ];
 

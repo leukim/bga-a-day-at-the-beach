@@ -42,11 +42,15 @@ class CardDeck {
     }
 
     public function handSize($player_id) {
-        return count($this->getHand( $player_id ));
+        return count($this->getHand($player_id));
     }
 
     public function getHand($player_id) {
-        return $this->cards->getCardsInLocation( 'hand', $player_id );
+        return $this->cards->getCardsInLocation('hand', $player_id);
+    }
+
+    public function getDiscard() {
+        return $this->cards->getCardsInLocation('discard');
     }
 
     public function pickCardToOcean() {

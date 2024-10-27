@@ -84,11 +84,12 @@ function (dojo, declare) {
 
             this.deck_counter.setValue(gamedatas['sizes']['deck']);
 
+            this.discard = gamedatas['discard'];
             this.discard_counter = new ebg.counter();
             this.discard_counter.create('discard_size');
 
-            if (gamedatas['sizes']['discard'] > 0) {
-                this.discard_counter.setValue(gamedatas['sizes']['discard']);
+            if (gamedatas['discard'].length > 0) {
+                this.discard_counter.setValue(gamedatas['discard'].length);
                 dojo.attr('discard', 'data-state', 'card');
             }
 
@@ -364,6 +365,7 @@ function (dojo, declare) {
                 ['playBoat', 0],
                 ['discardHand', 0],
                 ['pickCards', 500],
+                ['bonfire', 0],
             ];
 
             notifs.forEach((notif) => {
@@ -428,8 +430,7 @@ function (dojo, declare) {
 
                 if (this.player_id === from_player_id) {
                     // Move from hand to discard
-                    var animation = this.hand.removeFromStockById(card_id, 'discard');
-                    console.log("animation", animation);
+                    this.hand.removeFromStockById(card_id, 'discard');
                     dojo.attr('discard', 'data-state', 'card');
                 } else {
                     var animation_id = this.slideTemporaryObject(
@@ -443,6 +444,10 @@ function (dojo, declare) {
                     });
                 }
                 
+            }
+
+            for (var key in notif.args.discards) {
+                this.discard.push(notif.args.discards[key]);
             }
             this.discard_counter.incValue(card_ids.length);
             this.hand_counters[from_player_id].incValue(-card_ids.length);
@@ -463,6 +468,7 @@ function (dojo, declare) {
                 dojo.attr('discard', 'data-state', 'empty');
             });
 
+            while(this.discard.length > 0) this.discard.pop(); 
             this.discard_counter.toValue(0);
             this.deck_counter.toValue(notif.args.deck_size);
         },
@@ -484,6 +490,7 @@ function (dojo, declare) {
                 });
             }
 
+            this.discard.push(notif.args.yellow_card);
             this.discard_counter.incValue(1);
             this.hand_counters[notif.args.player_id].incValue(-1);
         },
@@ -507,6 +514,7 @@ function (dojo, declare) {
 
         notif_playBoat: function(notif) {
             this.ocean.removeFromStockById(notif.args.boat_target_id, 'discard');
+            this.discard.push(notif.args.boat_card);
             this.discard_counter.incValue(1);
         },
 
@@ -524,13 +532,17 @@ function (dojo, declare) {
                 });
             }
 
-            this.deck_counter.incValue(-notif.args.nbr_discards);
-            this.discard_counter.incValue(notif.args.nbr_discards);
+            this.deck_counter.incValue(-4);
+            console.log("len", notif.args.discards.length);
+            this.discard_counter.incValue(notif.args.discards.length);
+            for (var key in notif.args.discards) {
+                var discard = notif.args.discards[key];
+                this.discard.push(discard);
+            }
             this.hand_counters[notif.args.player_id].setValue(4);
         },
 
         notif_discardHand: function(notif) {
-            this.hand_counters[this.player_id].setValue(0);
             this.hand.removeAllTo('discard');
         },
 

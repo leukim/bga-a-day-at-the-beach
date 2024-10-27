@@ -66,21 +66,30 @@ class ActionCards {
 
     private function boat($player_id, $card_id, $target_card_id) {
 
+        $boat = $this->game->deck->getCard($card_id);
         $this->game->deck->discardOceanCard($card_id);
         $target_card_type_id = $this->game->deck->getCardTypeId($target_card_id);
 
         $this->game->notifyAllPlayers('playBoat', clienttranslate('${playerName} plays ${cardName} from the ocean'), [
             'playerName'=> $this->game->getActivePlayerName(),
             'cardName' => $this->game->card_types[$target_card_type_id]['card_name'],
+            'boat_card' => $boat,
             'player_id' => $player_id,
             'boat_target_id' => $target_card_id
         ]);
         
         $this->playCard($player_id, $target_card_id, -1);
+        $this->game->deck->playActionCard($target_card_id);
     }
 
     private function bonfire($player_id) {
-        $nbr_discards = $this->game->deck->handSize($player_id) - 1; // Player card is not counted as "discarded"
+        $discards = $this->game->deck->getHand($player_id);
+        foreach ($discards as $key => $card) {
+            if ($discards[$key]['type'] == YELLOW_CARD and $discards[$key]['type_arg'] == CARD_BONFIRE) {
+                unset($discards[$key]);
+            }
+        }
+
         $this->game->deck->discardHand($player_id);
 
         $picked_cards = $this->game->deck->pickCards(4, $player_id);
@@ -88,7 +97,7 @@ class ActionCards {
         $this->game->notifyAllPlayers('bonfire', clienttranslate('${playerName} discards their hand and picks new cards'), [
             'playerName'=> $this->game->getActivePlayerName(),
             'player_id' => $player_id,
-            'nbr_discards' => $nbr_discards
+            'discards' => array_values($discards),
         ]);
 
         $this->game->notifyPlayer($player_id, 'discardHand', clienttranslate('You discard your hand'), []);
