@@ -113,10 +113,7 @@ function (dojo, declare) {
                 const player_info = gamedatas['sizes']['players'][key];
                 this.hand_counters[player_info.player_id].setValue(player_info.size);
             }
-
-            // TODO MODIFY HAND COUNTS IN OTHER METHODS
  
-            // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
         },
        
@@ -238,13 +235,39 @@ function (dojo, declare) {
                         }
                         this.addActionButton('cancelClientState-btn', _('Cancel'), () => this.restoreServerGameState());
                         break;
+                    case 'client_playerPicksPlayerToTradeHands':
+                        for (const target_player_id in this.gamedatas.players) {
+                            if (target_player_id != this.player_id) {
+                                const playerInfo = this.gamedatas.players[target_player_id];
+                                // const color = playerInfo.color;
+                                const name = playerInfo.name;
+                                this.addActionButton(
+                                    `client_selectPlayer_${target_player_id}-btn`,
+                                    `${name} - ${target_player_id}`,
+                                    () => this.pirate(target_player_id)
+                                );
+                            }
+                        }
+                        break;
                 }
             }
         },
 
+        /**
+         * Virtual states handlers
+         */
+
         playBoat: function(card) {
             this.action_cards.play(this.clientStateArgs.card, card);
         },
+
+        pirate: function(target_id) {
+            this.action_cards.play(this.clientStateArgs.card, target_id);
+        },
+
+        /**
+         * Selection change handlers
+         */
 
         onChangeOceanSelection: function(control_name, item_id) {
             if( this.isCurrentPlayerActive() ) {
@@ -366,6 +389,8 @@ function (dojo, declare) {
                 ['discardHand', 0],
                 ['pickCards', 500],
                 ['bonfire', 0],
+                ['tradeHands', 0],
+                ['getCardsFrom', 0],
             ];
 
             notifs.forEach((notif) => {
@@ -551,6 +576,21 @@ function (dojo, declare) {
                 const card = notif.args.picked_cards[key];
 
                 this.hand.addToStockWithId(this.getTypeFromCard(card), card.id, 'deck');
+            }
+        },
+
+        notif_tradeHands: function(notif) {
+            this.hand_counters[notif.args.player_id_1].setValue(notif.args.player_nbr_1);
+            this.hand_counters[notif.args.player_id_2].setValue(notif.args.player_nbr_2);
+        },
+
+        notif_getCardsFrom: function(notif) {
+            this.hand.removeAllTo(`overall_player_board_${notif.args.player_id}`);
+
+            for (const key in notif.args.cards) {
+                const card = notif.args.cards[key];
+
+                this.hand.addToStockWithId(this.getTypeFromCard(card), card.id, `overall_player_board_${notif.args.player_id}`);
             }
         },
    });             

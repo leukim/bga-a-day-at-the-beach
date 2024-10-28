@@ -115,4 +115,10 @@ class CardDeck {
     public function pickCards($nbr, $player_id) {
         return $this->cards->pickCards($nbr, 'deck', $player_id);
     }
+
+    public function tradeHands($player1_id, $player2_id) {
+        $this->cards->moveAllCardsInLocation('hand', 'temp', $player1_id);
+        $this->cards->moveAllCardsInLocation('hand', 'hand', $player2_id, $player1_id);
+        $this->cards->moveAllCardsInLocation('temp', 'hand', null, $player2_id);
+    }
 }

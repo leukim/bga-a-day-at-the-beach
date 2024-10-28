@@ -35,6 +35,10 @@ class ActionCards {
                     break;
                 case CARD_BONFIRE:
                     $this->bonfire($player_id);
+                    break;
+                case CARD_PIRATE:
+                    $this->pirate($card_id, $player_id, $target_id);
+                    break;
             }
         }
     }
@@ -104,6 +108,35 @@ class ActionCards {
 
         $this->game->notifyPlayer($player_id, 'pickCards', clienttranslate('You pick 4 cards from the deck'), [
             'picked_cards' => $picked_cards
+        ]);
+    }
+
+    private function pirate($pirate_card_id, $player_id, $target_player_id) {
+        $this->game->deck->playActionCard($pirate_card_id);
+
+        $this->game->deck->tradeHands($player_id, $target_player_id);
+
+        $player_infos = $this->game->loadPlayersBasicInfos();
+
+        $this->game->notifyAllPlayers('tradeHands', clienttranslate('${player1} trades hands with ${player2}') , [
+            'player1'=> $player_infos[$player_id]['player_name'],
+            'player2'=> $player_infos[$target_player_id]['player_name'],
+            'player_id_1' => $player_id,
+            'player_id_2' => $target_player_id,
+            'player_nbr_1' => $this->game->deck->handSize($player_id),
+            'player_nbr_2' => $this->game->deck->handSize($target_player_id),
+        ]);
+
+        $this->game->notifyPlayer($player_id, 'getCardsFrom', clienttranslate('You get cards from ${playerName}'), [
+            'playerName'=> $player_infos[$target_player_id]['player_name'],
+            'player_id' => $target_player_id,
+            'cards' => $this->game->deck->getHand($player_id),
+        ]);
+
+        $this->game->notifyPlayer($target_player_id, 'getCardsFrom', clienttranslate('You get cards from ${playerName}'), [
+            'playerName'=> $player_infos[$player_id]['player_name'],
+            'player_id' => $player_id,
+            'cards' => $this->game->deck->getHand($target_player_id),
         ]);
     }
 }

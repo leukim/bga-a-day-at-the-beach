@@ -42,7 +42,7 @@ class ActionCards {
         this.table = table;
     }
 
-    play(card, selected_boat_card = null) {
+    play(card, target = null) {
         var params = {};
 
         switch(card.type) {
@@ -52,29 +52,46 @@ class ActionCards {
             case CARD_SEAGULL:
             case CARD_HERMIT_CRAB:
             case CARD_LIFEGUARD:
-                params = {card_id: card.id, target_card_id: -1};
+                params = {card_id: card.id, target_id: -1};
                 break;
             case CARD_BOAT:
-                if (selected_boat_card === null) {
-                    this._activateBoat(card);  // If initial boat selection we will only show the dialog
+                if (target === null) {
+                    this._showBoatDialog(card);  // If initial boat selection we will only show the dialog
+                    return;
                 }
                 // Boat target selected, send action
-                params = { card_id: card.id, target_card_id: selected_boat_card.id }
+                params = { card_id: card.id, target_id: target.id }
                 break;
             case CARD_BONFIRE:
-                params = {card_id: card.id, target_card_id: 0};
+                params = {card_id: card.id, target_id: 0};
+                break;
+            case CARD_PIRATE:
+                if (target === null) {
+                    this._showPirateDialog(card);
+                    return;
+                }
+                params = { card_id: card.id, target_id: target }
                 break;
         }
 
         this.table.bgaPerformAction("actYellowCard", params); 
     }
 
-    _activateBoat(card) {
+    _showBoatDialog(card) {
         this.table.clientStateArgs = {
             card,
         };
         this.table.setClientState("client_playerPicksActionCardFromOcean", {
             descriptionmyturn : _("${you} must pick an action card from the ocean to play"),
+        });
+    }
+
+    _showPirateDialog(card) {
+        this.table.clientStateArgs = {
+            card,
+        };
+        this.table.setClientState("client_playerPicksPlayerToTradeHands", {
+            descriptionmyturn : _("${you} must pick another player to trade hands"),
         });
     }
 }
