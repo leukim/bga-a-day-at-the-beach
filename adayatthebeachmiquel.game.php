@@ -19,6 +19,7 @@ declare(strict_types=1);
 require_once(APP_GAMEMODULE_PATH . "module/table/table.game.php");
 
 use \Bga\GameFramework\Actions\Types\IntArrayParam;
+use \Bga\GameFramework\Actions\Types\JsonParam;
 
 require_once "modules/php/constants.inc.php";
 require_once "modules/php/CardDeck.php";
@@ -144,11 +145,15 @@ class ADayAtTheBeachMiquel extends Table
         $this->gamestate->nextState(ACT_PASS);
     }
 
-    public function actYellowCard(int $card_id, int $target_id) {
+    public function actYellowCard(#[JsonParam] array $payload) {
+        if (!isset($payload['card_id'])) {
+            throw new BgaSystemException('Mandatory card_id not found in payload');
+        }
+
         $player_id = (int)$this->getActivePlayerId();
         
         
-        $card = $this->deck->getCard($card_id);
+        $card = $this->deck->getCard($payload['card_id']);
         $card_type_id = $card['type'] * 19 + $card['type_arg'];
         $card_name = $this->card_types[$card_type_id]['card_name'];
         
@@ -156,14 +161,14 @@ class ADayAtTheBeachMiquel extends Table
             'playerName'=> $this->getActivePlayerName(),
             'yellowCardName'=> $card_name,
             'yellow_card' => $card,
-            'yellow_card_id' => $card_id,
+            'yellow_card_id' => $payload['card_id'],
             'yellow_card_type_id' => $card_type_id,
             'player_id' => $player_id,
         ]);
         
-        $this->action_cards->playCard($player_id, $card_id, $target_id);
+        $this->action_cards->playCard($player_id, $payload);
         
-        $this->deck->playActionCard($card_id);
+        $this->deck->playActionCard($payload['card_id']);
 
         $this->gamestate->nextState(ACT_YELLOW_CARD);
     }

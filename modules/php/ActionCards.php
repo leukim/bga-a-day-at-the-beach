@@ -7,8 +7,8 @@ class ActionCards {
         $this->game = $game;
     }
 
-    public function playCard($player_id, $card_id, $target_id) {
-        $card = $this->game->deck->getCard($card_id);
+    public function playCard($player_id, $payload) {
+        $card = $this->game->deck->getCard($payload['card_id']);
 
         if ($card['type'] == YELLOW_CARD) {
             switch ($card['type_arg']) {
@@ -31,13 +31,13 @@ class ActionCards {
                     $this->takeFromOcean(BLUE_CARD, CARD_SWIMMER);
                     break;
                 case CARD_BOAT:
-                    $this->boat($player_id, $card_id, $target_id);
+                    $this->boat($player_id, $payload['card_id'], $payload['target_id']);
                     break;
                 case CARD_BONFIRE:
                     $this->bonfire($player_id);
                     break;
                 case CARD_PIRATE:
-                    $this->pirate($card_id, $player_id, $target_id);
+                    $this->pirate($payload['card_id'], $player_id, $payload['target_id']);
                     break;
             }
         }
@@ -82,7 +82,7 @@ class ActionCards {
             'boat_target_id' => $target_card_id
         ]);
         
-        $this->playCard($player_id, $target_card_id, -1);
+        $this->playCard($player_id, ['card_id' => $target_card_id]);
         $this->game->deck->playActionCard($target_card_id);
     }
 

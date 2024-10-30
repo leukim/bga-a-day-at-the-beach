@@ -43,7 +43,7 @@ class ActionCards {
     }
 
     play(card, target = null) {
-        var params = {};
+        var payload = {};
 
         switch(card.type) {
             case CARD_PLAYFUL_PUPPY:
@@ -52,7 +52,7 @@ class ActionCards {
             case CARD_SEAGULL:
             case CARD_HERMIT_CRAB:
             case CARD_LIFEGUARD:
-                params = {card_id: card.id, target_id: -1};
+                payload = {card_id: card.id};
                 break;
             case CARD_BOAT:
                 if (target === null) {
@@ -60,21 +60,21 @@ class ActionCards {
                     return;
                 }
                 // Boat target selected, send action
-                params = { card_id: card.id, target_id: target.id }
+                payload = {card_id: card.id, target_id: target.id}
                 break;
             case CARD_BONFIRE:
-                params = {card_id: card.id, target_id: 0};
+                payload = {card_id: card.id};
                 break;
             case CARD_PIRATE:
                 if (target === null) {
                     this._showPirateDialog(card);
                     return;
                 }
-                params = { card_id: card.id, target_id: target }
+                payload = {card_id: card.id, target_id: target};
                 break;
         }
 
-        this.table.bgaPerformAction("actYellowCard", params); 
+        this.table.bgaPerformAction("actYellowCard", {payload: JSON.stringify(payload)}); 
     }
 
     _showBoatDialog(card) {
