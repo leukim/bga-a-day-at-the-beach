@@ -72,6 +72,12 @@ class ActionCards {
                 }
                 payload = {card_id: card.id, target_id: target};
                 break;
+            case CARD_JETSKI:
+                if (target === null || target.length == 0) {
+                    this._showJetskiDialog(card);
+                    return;
+                }
+                payload = {card_id: card.id, target: [target[0].id, target[1].id]}
         }
 
         this.table.bgaPerformAction("actYellowCard", {payload: JSON.stringify(payload)}); 
@@ -92,6 +98,15 @@ class ActionCards {
         };
         this.table.setClientState("client_playerPicksPlayerToTradeHands", {
             descriptionmyturn : _("${you} must pick another player to trade hands"),
+        });
+    }
+
+    _showJetskiDialog(card) {
+        this.table.clientStateArgs = {
+            card,
+        };
+        this.table.setClientState("client_playerPicksBlueCardsFromOcean", {
+            descriptionmyturn : _("${you} can pick up to two blue cards from the ocean"),
         });
     }
 }

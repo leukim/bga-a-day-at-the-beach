@@ -39,6 +39,8 @@ class ActionCards {
                 case CARD_PIRATE:
                     $this->pirate($payload['card_id'], $player_id, $payload['target_id']);
                     break;
+                case CARD_JETSKI:
+                    $this->jetski($payload['card_id'], $payload['target'], $player_id);
             }
         }
     }
@@ -137,6 +139,24 @@ class ActionCards {
             'playerName'=> $player_infos[$player_id]['player_name'],
             'player_id' => $player_id,
             'cards' => $this->game->deck->getHand($target_player_id),
+        ]);
+    }
+
+    private function jetski($jetski_card, $picked_cards, $player_id) {
+        $this->game->deck->playActionCard($jetski_card);
+
+        $taken_cards = [];
+        $nbr = 0;
+        foreach ($picked_cards as $card_id) {
+            $taken_cards[] = $this->game->deck->cardToPlayer($card_id, $player_id);
+            $nbr++;
+        }
+
+        $this->game->notifyAllPlayers('takeFromOcean', clienttranslate('${playerName} takes ${nbr} cards from the ocean'), [
+            'playerName' =>  $this->game->getActivePlayerName(),
+            'nbr' => $nbr,
+            'player_id' => $player_id,
+            'taken_cards' => $taken_cards,
         ]);
     }
 }

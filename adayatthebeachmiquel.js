@@ -163,15 +163,20 @@ function (dojo, declare) {
         //
         onEnteringState: function( stateName, args ) {
             console.log( 'Entering state: ', stateName, args );
+
+            this.stateName = stateName;
             
             switch( stateName )
             {
                 case 'playerTurn':
-                    // TODO Review, does not work
                     this.ocean.setSelectionMode(1);
                     this.ocean.unselectAll();
                     this.hand.setSelectionMode(1);
                     this.hand.unselectAll();
+                    break;
+                case 'client_playerPicksBlueCardsFromOcean':
+                    this.ocean.setSelectionMode(2);
+                    this.ocean.unselectAll();
                     break;
             }
         },
@@ -187,6 +192,10 @@ function (dojo, declare) {
                 case 'playerTurn':
                     this.ocean.setSelectionMode(0);
                     this.hand.setSelectionMode(0);
+                    break;
+                case 'client_playerPicksBlueCardsFromOcean':
+                    this.ocean.setSelectionMode(0);
+                    this.ocean.unselectAll();
                     break;
             }               
         }, 
@@ -249,6 +258,9 @@ function (dojo, declare) {
                             }
                         }
                         break;
+                    case 'client_playerPicksBlueCardsFromOcean':
+                        this.addActionButton('pickBlueCards-btn', _('Pick cards'), () => this.jetski());
+                        break;
                 }
             }
         },
@@ -265,21 +277,33 @@ function (dojo, declare) {
             this.action_cards.play(this.clientStateArgs.card, target_id);
         },
 
+        jetski: function() {
+            this.action_cards.play(this.clientStateArgs.card, this.ocean.getSelectedItems());
+        },
+
         /**
          * Selection change handlers
          */
 
         onChangeOceanSelection: function(control_name, item_id) {
             if( this.isCurrentPlayerActive() ) {
-                const ocean_selected = this.ocean.getSelectedItems();
-                const hand_selected = this.hand.getSelectedItems();
-                if (
-                    ocean_selected !== undefined && hand_selected !== undefined &&
-                    ocean_selected.length === 1 && hand_selected.length === 1
-                ) {
-                    dojo.removeClass('actExchange-btn', 'disabled');
+                if (this.stateName == 'client_playerPicksBlueCardsFromOcean') {
+                    if (this.checkCardsForJetski()) {
+                        dojo.removeClass('pickBlueCards-btn', 'disabled');
+                    } else {
+                        dojo.addClass('pickBlueCards-btn', 'disabled');
+                    }
                 } else {
-                    dojo.addClass('actExchange-btn', 'disabled');
+                    const ocean_selected = this.ocean.getSelectedItems();
+                    const hand_selected = this.hand.getSelectedItems();
+                    if (
+                        ocean_selected !== undefined && hand_selected !== undefined &&
+                        ocean_selected.length === 1 && hand_selected.length === 1
+                    ) {
+                        dojo.removeClass('actExchange-btn', 'disabled');
+                    } else {
+                        dojo.addClass('actExchange-btn', 'disabled');
+                    }
                 }
             }
         },
@@ -318,6 +342,18 @@ function (dojo, declare) {
             script.
         
         */
+
+        checkCardsForJetski: function() {
+            const selected = this.ocean.getSelectedItems();
+
+            if (selected.length > 2) return false;
+
+            for (const key in selected) {
+                if (selected[key].type > 19) return false;
+            }
+
+            return true;
+        },
 
 
         ///////////////////////////////////////////////////
