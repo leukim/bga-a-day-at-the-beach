@@ -259,7 +259,7 @@ function (dojo, declare) {
                         }
                         break;
                     case 'client_playerPicksBlueCardsFromOcean':
-                        this.addActionButton('pickBlueCards-btn', _('Pick cards'), () => this.jetski());
+                        this.addActionButton('pickBlueCards-btn', _('Pick cards'), () => this.jetskiOrWave());
                         break;
                 }
             }
@@ -277,7 +277,7 @@ function (dojo, declare) {
             this.action_cards.play(this.clientStateArgs.card, target_id);
         },
 
-        jetski: function() {
+        jetskiOrWave: function() {
             this.action_cards.play(this.clientStateArgs.card, this.ocean.getSelectedItems());
         },
 
@@ -413,6 +413,7 @@ function (dojo, declare) {
         {
             const notifs = [
                 ['cardToOcean', 500],
+                ['cardsToOcean', 0],
                 ['cardToHand', 0],
                 ['cardToPlayer', 0],
                 ['exchange', 0],
@@ -423,6 +424,7 @@ function (dojo, declare) {
                 ['takeFromOcean', 0],
                 ['playBoat', 0],
                 ['discardHand', 0],
+                ['discardOcean', 0],
                 ['pickCards', 500],
                 ['bonfire', 0],
                 ['tradeHands', 0],
@@ -442,6 +444,16 @@ function (dojo, declare) {
             const card = notif.args.card;
             this.ocean.addToStockWithId(this.getTypeFromCard(card), card.id, 'deck');
             this.deck_counter.incValue(-1);
+        },
+
+        notif_cardsToOcean: function(notif) {
+            const cards = notif.args.cards;
+            for (const key in cards) {
+                const card = cards[key];
+                this.ocean.addToStockWithId(this.getTypeFromCard(card), card.id, 'deck');
+            }
+            
+            this.deck_counter.incValue(-cards.length);
         },
 
         notif_cardToHand: function(notif) {
@@ -605,6 +617,12 @@ function (dojo, declare) {
 
         notif_discardHand: function(notif) {
             this.hand.removeAllTo('discard');
+        },
+
+        notif_discardOcean: function(notif) {
+            const nbr = this.ocean.count();
+            this.ocean.removeAllTo('discard');
+            this.discard_counter.incValue(nbr);
         },
 
         notif_pickCards: function(notif) {

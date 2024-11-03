@@ -112,6 +112,10 @@ class CardDeck {
         $this->cards->moveAllCardsInLocation('hand', 'discard', $player_id);
     }
 
+    public function discardOcean() {
+        $this->cards->moveAllCardsInLocation('ocean', 'discard');
+    }
+
     public function pickCards($nbr, $player_id) {
         return $this->cards->pickCards($nbr, 'deck', $player_id);
     }

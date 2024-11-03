@@ -41,6 +41,10 @@ class ActionCards {
                     break;
                 case CARD_JETSKI:
                     $this->jetski($payload['card_id'], $payload['target'], $player_id);
+                    break;
+                case CARD_THE_WAVE:
+                    $this->theWave($payload['card_id'], $payload['target'], $player_id);
+                    break;
             }
         }
     }
@@ -157,6 +161,37 @@ class ActionCards {
             'nbr' => $nbr,
             'player_id' => $player_id,
             'taken_cards' => $taken_cards,
+        ]);
+    }
+
+    private function theWave($wave_card, $picked_cards, $player_id) {
+        $this->game->deck->playActionCard($wave_card);
+
+        $taken_cards = [];
+        $nbr = 0;
+        foreach ($picked_cards as $card_id) {
+            $taken_cards[] = $this->game->deck->cardToPlayer($card_id, $player_id);
+            $nbr++;
+        }
+
+        $this->game->notifyAllPlayers('takeFromOcean', clienttranslate('${playerName} takes ${nbr} cards from the ocean'), [
+            'playerName' =>  $this->game->getActivePlayerName(),
+            'nbr' => $nbr,
+            'player_id' => $player_id,
+            'taken_cards' => $taken_cards,
+        ]);
+
+        $this->game->deck->discardOcean();
+
+        $this->game->notifyAllPlayers('discardOcean', clienttranslate('The ocean is discarded'), []);
+
+        $ocean = [];
+        foreach (range(1,3) as $_) {
+            $ocean[] = $this->game->deck->pickCardToOcean();
+        }
+
+        $this->game->notifyAllPlayers('cardsToOcean', clienttranslate('New cards are drawn into the ocean'), [
+            'cards' => $ocean
         ]);
     }
 }

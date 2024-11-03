@@ -78,6 +78,12 @@ class ActionCards {
                     return;
                 }
                 payload = {card_id: card.id, target: [target[0].id, target[1].id]}
+            case CARD_THE_WAVE:
+                if (target === null || target.length == 0) {
+                    this._showTheWaveDialog(card);
+                    return;
+                }
+                payload = {card_id: card.id, target: [target[0].id, target[1].id]}
         }
 
         this.table.bgaPerformAction("actYellowCard", {payload: JSON.stringify(payload)}); 
@@ -107,6 +113,15 @@ class ActionCards {
         };
         this.table.setClientState("client_playerPicksBlueCardsFromOcean", {
             descriptionmyturn : _("${you} can pick up to two blue cards from the ocean"),
+        });
+    }
+
+    _showTheWaveDialog(card) {
+        this.table.clientStateArgs = {
+            card,
+        };
+        this.table.setClientState("client_playerPicksBlueCardsFromOcean", {
+            descriptionmyturn : _("${you} can pick up to two blue cards from the ocean. The rest will be discarded."),
         });
     }
 }
