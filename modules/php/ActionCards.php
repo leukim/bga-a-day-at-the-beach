@@ -45,6 +45,9 @@ class ActionCards {
                 case CARD_THE_WAVE:
                     $this->theWave($payload['card_id'], $payload['target'], $player_id);
                     break;
+                case CARD_TREASURE_CHEST:
+                    $this->treasureChest($payload['card_id'], $payload['target'], $player_id);
+                    break;
             }
         }
     }
@@ -192,6 +195,28 @@ class ActionCards {
 
         $this->game->notifyAllPlayers('cardsToOcean', clienttranslate('New cards are drawn into the ocean'), [
             'cards' => $ocean
+        ]);
+    }
+
+    private function treasureChest($chest_card, $picked_cards, $player_id) {
+        $this->game->deck->playActionCard($chest_card);
+
+        $nbr = 0;
+        foreach ($picked_cards as $card_id) {
+            $card = $this->game->deck->cardToPlayer($card_id, $player_id);
+            $nbr++;
+
+            $card_type_id = $card['type'] * 19 + $card['type_arg'];
+            $this->game->notifyPlayer($player_id, 'cardToHandFromDiscard', clienttranslate('You get ${cardName} from the discard'), [
+                'cardName' => $this->game->card_types[$card_type_id]['card_name'],
+                'card' => $card,
+            ]);
+        }
+
+        $this->game->notifyAllPlayers('others_takeFromDiscard', clienttranslate('${playerName} takes ${nbr} cards from the discard'), [
+            'playerName' =>  $this->game->getActivePlayerName(),
+            'nbr' => $nbr,
+            'player_id' => $player_id,
         ]);
     }
 }

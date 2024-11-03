@@ -84,6 +84,13 @@ class ActionCards {
                     return;
                 }
                 payload = {card_id: card.id, target: [target[0].id, target[1].id]}
+            case CARD_TREASURE_CHEST:
+                if (target === null || target.length == 0) {
+                    this._showTreasureChestDialog(card);
+                    return;
+                }
+                payload = {card_id: card.id, target: [target[0].id, target[1].id]}
+                console.log("payload", payload);
         }
 
         this.table.bgaPerformAction("actYellowCard", {payload: JSON.stringify(payload)}); 
@@ -122,6 +129,17 @@ class ActionCards {
         };
         this.table.setClientState("client_playerPicksBlueCardsFromOcean", {
             descriptionmyturn : _("${you} can pick up to two blue cards from the ocean. The rest will be discarded."),
+        });
+    }
+
+    _showTreasureChestDialog(card) {
+        this.table.clientStateArgs = {
+            card,
+            discard: [...this.table.discard],
+            picked: [],
+        };
+        this.table.setClientState("client_playerPicksBlueCardsFromDiscard", {
+            descriptionmyturn : _("${you} can pick up two blue cards from the discard"),
         });
     }
 }

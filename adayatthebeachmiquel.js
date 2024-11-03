@@ -261,6 +261,24 @@ function (dojo, declare) {
                     case 'client_playerPicksBlueCardsFromOcean':
                         this.addActionButton('pickBlueCards-btn', _('Pick cards'), () => this.jetskiOrWave());
                         break;
+                    case 'client_playerPicksBlueCardsFromDiscard':
+                        const discard = this.clientStateArgs.discard;
+                        if (this.clientStateArgs.picked.length < 2) {
+                            for (var key in discard) {
+                                const card = discard[key];
+                                const card_type = this.getTypeFromCard(card);
+                                if (card.type <= 19) {
+                                    this.addImageActionButton(
+                                        `client_selectCard${card.id}-btn`,
+                                        `<div class="card card_${card_type}"></div>`,
+                                        () => this.processTreasureChest(card)
+                                    );
+                                }
+                            }
+                        }
+                        this.addActionButton('confirmPickFromDiscard-btn', _('Confirm picked cards'), () => this.confirmTreasureChest());
+                        this.addActionButton('cancelClientState-btn', _('Cancel'), () => this.restoreServerGameState());
+                        break;
                 }
             }
         },
@@ -279,6 +297,16 @@ function (dojo, declare) {
 
         jetskiOrWave: function() {
             this.action_cards.play(this.clientStateArgs.card, this.ocean.getSelectedItems());
+        },
+
+        processTreasureChest: function(card) {
+            this.clientStateArgs.discard = this.clientStateArgs.discard.filter((el) => el.id != card.id);
+            this.clientStateArgs.picked.push(card);
+            dojo.addClass(`client_selectCard${card.id}-btn`, 'disabled');
+        },
+
+        confirmTreasureChest: function() {
+            this.action_cards.play(this.clientStateArgs.card, this.clientStateArgs.picked);
         },
 
         /**
@@ -414,7 +442,8 @@ function (dojo, declare) {
             const notifs = [
                 ['cardToOcean', 500],
                 ['cardsToOcean', 0],
-                ['cardToHand', 0],
+                ['cardToHand', 0], // TODO Rename to "fromDeck"
+                ['cardToHandFromDiscard', 0],
                 ['cardToPlayer', 0],
                 ['exchange', 0],
                 ['discard', 0],
@@ -422,6 +451,7 @@ function (dojo, declare) {
                 ['shuffle', 0],
                 ['playYellowCard', 0],
                 ['takeFromOcean', 0],
+                ['others_takeFromDiscard', 0],
                 ['playBoat', 0],
                 ['discardHand', 0],
                 ['discardOcean', 0],
@@ -460,6 +490,13 @@ function (dojo, declare) {
             const card = notif.args.card;
             this.hand.addToStockWithId(this.getTypeFromCard(card), card.id, 'deck');
             this.deck_counter.incValue(-1);
+            this.hand_counters[this.player_id].incValue(1);
+        },
+        
+        notif_cardToHandFromDiscard: function(notif) {
+            const card = notif.args.card;
+            this.hand.addToStockWithId(this.getTypeFromCard(card), card.id, 'discard');
+            this.discard_counter.incValue(-1);
             this.hand_counters[this.player_id].incValue(1);
         },
 
@@ -584,6 +621,27 @@ function (dojo, declare) {
             
             this.hand_counters[notif.args.player_id].incValue(taken_cards.length);
         },
+
+        notif_others_takeFromDiscard: function(notif) {
+            if (this.player_id != notif.args.player_id) {
+                var animation_id = this.slideTemporaryObject(
+                    `<div id="flip_card" class="deck"></div>`,
+                    'discard',
+                    `overall_player_board_${notif.args.player_id}`,
+                    'discard',
+                    1250
+                ).play();
+                dojo.connect(animation_id, 'onEnd', () => {
+                    this.discard_counter.incValue(-notif.args.nbr);
+                    if (this.discard_counter.getValue() == 0) {
+                        dojo.attr('discard', 'data-state', 'empty');
+                    }
+                });
+
+                this.hand_counters[notif.args.player_id].incValue(notif.args.nbr);
+            }
+        },
+
 
         notif_playBoat: function(notif) {
             this.ocean.removeFromStockById(notif.args.boat_target_id, 'discard');
