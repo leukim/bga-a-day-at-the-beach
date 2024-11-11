@@ -10,25 +10,39 @@ class ActionCards {
     public function playCard($player_id, $payload) {
         $card = $this->game->deck->getCard($payload['card_id']);
 
+        $card_type_id = $card['type'] * 19 + $card['type_arg'];
+        $card_name = $this->game->card_types[$card_type_id]['card_name'];
+        
+        $this->game->notifyAllPlayers('playYellowCard', clienttranslate('${playerName} plays ${yellowCardName}'), [
+            'playerName'=> $this->game->getActivePlayerName(),
+            'yellowCardName'=> $card_name,
+            'yellow_card' => $card,
+            'yellow_card_id' => $payload['card_id'],
+            'yellow_card_type_id' => $card_type_id,
+            'player_id' => $player_id,
+        ]);
+
+        $this->game->deck->playActionCard($payload['card_id']);
+
         if ($card['type'] == YELLOW_CARD) {
             switch ($card['type_arg']) {
                 case CARD_PLAYFUL_PUPPY:
-                    $this->takeFromOcean(BLUE_CARD, CARD_FRISBEE);
+                    $this->takeFromOcean($player_id, BLUE_CARD, CARD_FRISBEE);
                     break;
                 case CARD_HURRICANE:
-                    $this->takeFromOcean(BLUE_CARD, CARD_KITE);
+                    $this->takeFromOcean($player_id, BLUE_CARD, CARD_KITE);
                     break;
                 case CARD_BEACH_UMBRELLA:
-                    $this->takeFromOcean(BLUE_CARD, CARD_SANDCASTLE);
+                    $this->takeFromOcean($player_id, BLUE_CARD, CARD_SANDCASTLE);
                     break;
                 case CARD_SEAGULL:
-                    $this->takeFromOcean(BLUE_CARD, CARD_STARFISH);
+                    $this->takeFromOcean($player_id, BLUE_CARD, CARD_STARFISH);
                     break;
                 case CARD_HERMIT_CRAB:
-                    $this->takeFromOcean(BLUE_CARD, CARD_SEASHELL);
+                    $this->takeFromOcean($player_id, BLUE_CARD, CARD_SEASHELL);
                     break;
                 case CARD_LIFEGUARD:
-                    $this->takeFromOcean(BLUE_CARD, CARD_SWIMMER);
+                    $this->takeFromOcean($player_id, BLUE_CARD, CARD_SWIMMER);
                     break;
                 case CARD_BOAT:
                     $this->boat($player_id, $payload['card_id'], $payload['target_id']);
@@ -48,13 +62,17 @@ class ActionCards {
                 case CARD_TREASURE_CHEST:
                     $this->treasureChest($payload['card_id'], $payload['target'], $player_id);
                     break;
+                case CARD_METAL_DETECTOR:
+                    $this->metalDetector($payload['target'], $player_id);
+                    return; // Metal detector handles state transition
             }
         }
+
+        $this->game->gamestate->nextState(ACT_YELLOW_CARD);
     }
 
-    private function takeFromOcean($card_type, $card_type_arg) {
+    private function takeFromOcean($player_id, $card_type, $card_type_arg) {
         $ocean = $this->game->deck->getOcean();
-        $player_id = $this->game->getActivePlayerId();
         $nbr = 0;
         $taken_cards = [];
 
@@ -121,8 +139,6 @@ class ActionCards {
     }
 
     private function pirate($pirate_card_id, $player_id, $target_player_id) {
-        $this->game->deck->playActionCard($pirate_card_id);
-
         $this->game->deck->tradeHands($player_id, $target_player_id);
 
         $player_infos = $this->game->loadPlayersBasicInfos();
@@ -150,8 +166,6 @@ class ActionCards {
     }
 
     private function jetski($jetski_card, $picked_cards, $player_id) {
-        $this->game->deck->playActionCard($jetski_card);
-
         $taken_cards = [];
         $nbr = 0;
         foreach ($picked_cards as $card_id) {
@@ -168,8 +182,6 @@ class ActionCards {
     }
 
     private function theWave($wave_card, $picked_cards, $player_id) {
-        $this->game->deck->playActionCard($wave_card);
-
         $taken_cards = [];
         $nbr = 0;
         foreach ($picked_cards as $card_id) {
@@ -199,8 +211,6 @@ class ActionCards {
     }
 
     private function treasureChest($chest_card, $picked_cards, $player_id) {
-        $this->game->deck->playActionCard($chest_card);
-
         $nbr = 0;
         foreach ($picked_cards as $card_id) {
             $card = $this->game->deck->cardToPlayer($card_id, $player_id);
@@ -219,4 +229,30 @@ class ActionCards {
             'player_id' => $player_id,
         ]);
     }
+
+    private function metalDetector($target_card_id, $player_id) {
+        $card = $this->game->deck->getCard($target_card_id);
+
+        $this->game->deck->cardToPlayer($target_card_id, $player_id);
+        $card_type_id = $card['type'] * 19 + $card['type_arg'];
+
+        $this->game->notifyAllPlayers('others_takeFromDiscard', clienttranslate('${playerName} takes ${nbr} card from the discard'), [
+            'playerName' =>  $this->game->getActivePlayerName(),
+            'nbr' => 1,
+            'player_id' => $player_id,
+        ]);
+
+        $this->game->notifyPlayer($player_id, 'cardToHandFromDiscard', clienttranslate('You get ${cardName} from the discard'), [
+            'cardName' => $this->game->card_types[$card_type_id]['card_name'],
+            'card' => $card,
+        ]);
+
+        if ($card['type'] == BLUE_CARD) {
+            $this->game->gamestate->nextState(ACT_YELLOW_CARD);
+        } else {
+            $this->game->globals->set('cardIdToPlay', $card['id']);
+            $this->game->gamestate->nextState(ACT_PLAY_ACTION_CARD);
+        }
+    }
+
 }

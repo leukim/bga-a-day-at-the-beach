@@ -71,9 +71,15 @@ $machinestates = [
         "possibleactions" => [
             "actSurfTurf", 
             "actExchange",
-            "actYellowCard"
+            "actYellowCard",
+            "playActionCard"
         ],
-        "transitions" => [ACT_SURF_TURF => ST_CHECK_CAN_PUT_DOWN_SET, ACT_EXCHANGE => ST_CHECK_CAN_PUT_DOWN_SET, ACT_YELLOW_CARD => ST_CHECK_CAN_PUT_DOWN_SET]
+        "transitions" => [
+            ACT_SURF_TURF => ST_CHECK_CAN_PUT_DOWN_SET,
+            ACT_EXCHANGE => ST_CHECK_CAN_PUT_DOWN_SET,
+            ACT_YELLOW_CARD => ST_CHECK_CAN_PUT_DOWN_SET,
+            ACT_PLAY_ACTION_CARD => ST_PLAY_ACTION_CARD
+        ]
     ],
 
     ST_CHECK_CAN_PUT_DOWN_SET => [
@@ -105,6 +111,18 @@ $machinestates = [
         "action" => "stNextPlayer",
         "updateGameProgression" => true,
         "transitions" => [ACT_END_GAME => ST_END_GAME, ACT_NEXT_PLAYER => ST_PLAYER_TURN]
+    ],
+
+    ST_PLAY_ACTION_CARD => [
+        "name" => "playActionCard",
+        "description" => clienttranslate('${actplayer} has to play an action card'),
+        "descriptionmyturn" => clienttranslate('${you} have to play this action card'),
+        "type" => "activeplayer",
+        "args" => "argPlayActionCard",
+        "possibleactions" => [
+            "actYellowCard",
+        ],
+        "transitions" => [ACT_YELLOW_CARD => ST_CHECK_CAN_PUT_DOWN_SET]
     ],
 
     // Final state.

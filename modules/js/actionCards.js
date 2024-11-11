@@ -78,19 +78,28 @@ class ActionCards {
                     return;
                 }
                 payload = {card_id: card.id, target: [target[0].id, target[1].id]}
+                break;
             case CARD_THE_WAVE:
                 if (target === null || target.length == 0) {
                     this._showTheWaveDialog(card);
                     return;
                 }
                 payload = {card_id: card.id, target: [target[0].id, target[1].id]}
+                break;
             case CARD_TREASURE_CHEST:
                 if (target === null || target.length == 0) {
                     this._showTreasureChestDialog(card);
                     return;
                 }
                 payload = {card_id: card.id, target: [target[0].id, target[1].id]}
-                console.log("payload", payload);
+                break;
+            case CARD_METAL_DETECTOR:
+                if (target === null || target.length == 0) {
+                    this._showMetalDetectorDialog(card);
+                    return;
+                }
+                payload = {card_id: card.id, target: target['id']}
+                break;
         }
 
         this.table.bgaPerformAction("actYellowCard", {payload: JSON.stringify(payload)}); 
@@ -99,6 +108,7 @@ class ActionCards {
     _showBoatDialog(card) {
         this.table.clientStateArgs = {
             card,
+            returnTo: this.table.stateName,
         };
         this.table.setClientState("client_playerPicksActionCardFromOcean", {
             descriptionmyturn : _("${you} must pick an action card from the ocean to play"),
@@ -108,6 +118,7 @@ class ActionCards {
     _showPirateDialog(card) {
         this.table.clientStateArgs = {
             card,
+            returnTo: this.table.stateName,
         };
         this.table.setClientState("client_playerPicksPlayerToTradeHands", {
             descriptionmyturn : _("${you} must pick another player to trade hands"),
@@ -117,6 +128,7 @@ class ActionCards {
     _showJetskiDialog(card) {
         this.table.clientStateArgs = {
             card,
+            returnTo: this.table.stateName,
         };
         this.table.setClientState("client_playerPicksBlueCardsFromOcean", {
             descriptionmyturn : _("${you} can pick up to two blue cards from the ocean"),
@@ -126,6 +138,7 @@ class ActionCards {
     _showTheWaveDialog(card) {
         this.table.clientStateArgs = {
             card,
+            returnTo: this.table.stateName,
         };
         this.table.setClientState("client_playerPicksBlueCardsFromOcean", {
             descriptionmyturn : _("${you} can pick up to two blue cards from the ocean. The rest will be discarded."),
@@ -137,9 +150,21 @@ class ActionCards {
             card,
             discard: [...this.table.discard],
             picked: [],
+            returnTo: this.table.stateName,
         };
         this.table.setClientState("client_playerPicksBlueCardsFromDiscard", {
             descriptionmyturn : _("${you} can pick up two blue cards from the discard"),
+        });
+    }
+
+    _showMetalDetectorDialog(card) {
+        this.table.clientStateArgs = {
+            card,
+            discard: [...this.table.discard],
+            returnTo: this.table.stateName,
+        };
+        this.table.setClientState("client_playerPicksCardFromDiscard", {
+            descriptionmyturn : _("${you} can pick up a card from the discard (if it's an action card it will be played immediately)"),
         });
     }
 }

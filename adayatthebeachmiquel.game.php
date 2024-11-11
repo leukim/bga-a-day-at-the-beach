@@ -152,42 +152,25 @@ class ADayAtTheBeachMiquel extends Table
 
         $player_id = (int)$this->getActivePlayerId();
         
-        
-        $card = $this->deck->getCard($payload['card_id']);
-        $card_type_id = $card['type'] * 19 + $card['type_arg'];
-        $card_name = $this->card_types[$card_type_id]['card_name'];
-        
-        $this->notifyAllPlayers('playYellowCard', clienttranslate('${playerName} plays ${yellowCardName}'), [
-            'playerName'=> $this->getActivePlayerName(),
-            'yellowCardName'=> $card_name,
-            'yellow_card' => $card,
-            'yellow_card_id' => $payload['card_id'],
-            'yellow_card_type_id' => $card_type_id,
-            'player_id' => $player_id,
-        ]);
-        
         $this->action_cards->playCard($player_id, $payload);
-        
-        $this->deck->playActionCard($payload['card_id']);
-
-        $this->gamestate->nextState(ACT_YELLOW_CARD);
     }
 
     /**
-     * Game state arguments, example content.
-     *
-     * This method returns some additional information that is very specific to the `playerTurn` game state.
-     *
-     * @return string[]
-     * @see ./states.inc.php
+     * Game state arguments
      */
-    public function argPutDownSet()
-    {
+    public function argPutDownSet() {
         $player_id = self::getActivePlayerId();
 
         $sets = $this->set_detector->get_available_sets($player_id);
 
         return $sets;
+    }
+
+    public function argPlayActionCard() {
+        $card_id = $this->globals->get('cardIdToPlay');
+        return [
+            'card' => $this->deck->getCard($card_id)
+        ];
     }
 
     /**
@@ -200,8 +183,7 @@ class ADayAtTheBeachMiquel extends Table
      * @return int
      * @see ./states.inc.php
      */
-    public function getGameProgression()
-    {
+    public function getGameProgression() {
         // TODO: compute and return the game progression
 
         return 0;
