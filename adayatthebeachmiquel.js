@@ -474,8 +474,9 @@ function (dojo, declare) {
             const notifs = [
                 ['bonfire', 0],
                 ['cardsToOcean', 0],
-                ['cardToHand', 0], // TODO Rename to "fromDeck"
+                ['cardToHand', 0], // TODO Rename to "fromDeck" // TODO unify 3 notifs
                 ['cardToHandFromDiscard', 0],
+                ['cardToHandFromOcean', 0],
                 ['cardToOcean', 500],
                 ['cardToPlayer', 0],
                 ['discard', 0],
@@ -485,6 +486,7 @@ function (dojo, declare) {
                 ['getCardsFrom', 0],
                 ['increaseScore', 0],
                 ['others_takeFromDiscard', 0],
+                ['others_takeFromOcean', 0],
                 ['pickCards', 500],
                 ['playBoat', 0],
                 ['playYellowCard', 0],
@@ -546,6 +548,12 @@ function (dojo, declare) {
             const card = notif.args.card;
             this.hand.addToStockWithId(this.getTypeFromCard(card), card.id, 'discard');
             this.discard_counter.incValue(-1);
+            this.hand_counters[this.player_id].incValue(1);
+        },
+
+        notif_cardToHandFromOcean: function(notif) {
+            const card = notif.args.card;
+            this.hand.addToStockWithId(this.getTypeFromCard(card), card.id, 'ocean');
             this.hand_counters[this.player_id].incValue(1);
         },
 
@@ -658,6 +666,13 @@ function (dojo, declare) {
                 });
 
                 this.hand_counters[notif.args.player_id].incValue(notif.args.nbr);
+            }
+        },
+
+        notif_others_takeFromOcean: function(notif) {
+            if (this.player_id != notif.args.player_id) {
+                this.ocean.removeFromStockById(notif.args.card_id, `overall_player_board_${notif.args.player_id}`);
+                this.hand_counters[notif.args.player_id].incValue(1);
             }
         },
 

@@ -45,8 +45,8 @@ class ActionCards {
                     $this->takeFromOcean($player_id, BLUE_CARD, CARD_SWIMMER);
                     break;
                 case CARD_BOAT:
-                    $this->boat($player_id, $payload['card_id'], $payload['target_id']);
-                    break;
+                    $this->boat($player_id, $payload['target_id']);
+                    return; // Boat handles state transition
                 case CARD_BONFIRE:
                     $this->bonfire($player_id);
                     break;
@@ -95,22 +95,29 @@ class ActionCards {
         ]);
     }
 
-    private function boat($player_id, $card_id, $target_card_id) {
+    private function boat($player_id, $target_card_id) {
+        $target_card = $this->game->deck->getCard($target_card_id);
 
-        $boat = $this->game->deck->getCard($card_id);
-        $this->game->deck->discardOceanCard($card_id);
         $target_card_type_id = $this->game->deck->getCardTypeId($target_card_id);
 
-        $this->game->notifyAllPlayers('playBoat', clienttranslate('${playerName} plays ${cardName} from the ocean'), [
-            'playerName'=> $this->game->getActivePlayerName(),
-            'cardName' => $this->game->card_types[$target_card_type_id]['card_name'],
-            'boat_card' => $boat,
-            'player_id' => $player_id,
-            'boat_target_id' => $target_card_id
+        $this->game->deck->cardToPlayer($target_card_id, $player_id);
+
+        $card_name = $this->game->card_types[$target_card_type_id]['card_name'];
+
+        $this->game->notifyAllPlayers('others_takeFromOcean', clienttranslate('${playerName} takes ${cardName} to play from the ocean'), [
+            'playerName' =>  $this->game->getActivePlayerName(),
+            'cardName' => $card_name,
+            'card_id' => $target_card_id,
+            'player_id' => $player_id
         ]);
-        
-        $this->playCard($player_id, ['card_id' => $target_card_id]);
-        $this->game->deck->playActionCard($target_card_id);
+
+        $this->game->notifyPlayer($player_id, 'cardToHandFromOcean', clienttranslate('You take ${cardName} from the ocean'), [
+            'cardName' => $card_name,
+            'card' => $target_card,
+        ]);
+
+        $this->game->globals->set('cardIdToPlay', $target_card_id);
+        $this->game->gamestate->nextState(ACT_PLAY_ACTION_CARD);
     }
 
     private function bonfire($player_id) {
